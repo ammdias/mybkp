@@ -1,0 +1,9 @@
+; Sample My Backup configuration file
+; Last updated: 2020-08-26 (AMD)
+
+[default]
+command: echo cp --archive --update --verbose --strip-trailing-slashes
+base: /home/USER
+backup: /home/USER/tmp
+directories: Documents, Desktop
+
