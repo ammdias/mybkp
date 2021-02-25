@@ -20,17 +20,19 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Changes:
-    2.2: Added option to edit the configuration file
-    2.1: Added option to list backup profiles
-         Added option to display configuration file
+  2.2.1: Corrected bug that prevented an 'ok' to be shown after correctly
+           parsing a composite profile.
+    2.2: Added option to edit the configuration file.
+    2.1: Added option to list backup profiles.
+         Added option to display configuration file.
          Composite profiles can now only be composed of simple profiles,
-           thus preventing 'infinite loop' profiles
+           thus preventing 'infinite loop' profiles.
     2.0: Complete rewrite in Python.
          Configuration with possible multiple profiles in separate file.
 """
 
-__version__ = '2.2'
-__date__ = '2021-01-30'
+__version__ = '2.2.1'
+__date__ = '2021-02-17'
 __license__ ='GNU General Public License version 3'
 __author__ = 'António Manuel Dias <ammdias@gmail.com>'
 

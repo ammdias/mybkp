@@ -30,21 +30,23 @@ are given in the subsection **Usage in MS Windows** of the **USAGE** section.
 
 Changes history:
 
-* 2.2: Added option to edit the configuration file
-* 2.1: Added option to list backup profiles
-       Added option to display configuration file
-       Composite profiles can now only be composed of simple profiles,
+* 2.2.1: Corrected bug that prevented an 'ok' to be shown after correctly
+           parsing a composite profile.
+*   2.2: Added option to edit the configuration file
+*   2.1: Added option to list backup profiles
+         Added option to display configuration file
+         Composite profiles can now only be composed of simple profiles,
            thus preventing 'infinite loop' profiles
-* 2.0: Complete rewrite in Python.
-       Added possibility of multiple configuration profiles in a separate file.
-* 1.0: Original bash script.
+*   2.0: Complete rewrite in Python.
+         Configuration with possible multiple profiles in a separate file.
+*   1.0: Original bash script.
 
 
 INSTALLATION
 ------------
 
 The instructions below are for installation on a modern Linux system.  They
-may work on other modern unix-like systems like BSD derivatives, including
+may work in other modern unix-like systems like BSD derivatives, including
 MacOS, but that has not been tested and may require some tweaking.  Try it at
 your own risk.  For MS Windows installation, refer to the subsection
 **Usage in MS Windows** in the **USAGE** section.
@@ -113,10 +115,10 @@ the sample configuration file from the global installation to your user
 profile, use these commands:
 
     $ mkdir -p ~/.config
-    $ cp /usr/local/lib/mybkp-2.2.1/mybkp_profiles ~/.config/
+    $ cp /usr/local/lib/mybkp-2.2/mybkp_profiles ~/.config/
 
 If you wish to pass the configuration file location to the program manually
-at calling time, you may place it anywhere you want.
+at calling time, you may save it wherever you want.
 
 ## Configuration file syntax
 
@@ -129,7 +131,7 @@ must contain four *name*/*value* pairs:
 
 * `command`: the command to perform the backup, including all the command's
   options; this must be a system recognizable command that is called with two
-  positional arguments in the form `command <source> <destination>` (like
+  positinal arguments in the form `command <source> <destination>` (like
   `cp`, `scp` or `rsync`);
 * `base`: the parent directory where the directories to backup reside
   (e.g. your home directory);
@@ -138,8 +140,9 @@ must contain four *name*/*value* pairs:
 * `directories`: a comma separated list of directories, below the *base*
   directory, to backup.
 
-A **composite backup profile** is composed of a list of previously defined
-profiles, which will be executed in series.  It has a single name/value pair:
+A **backup profile** may also be composed of a list of previously defined
+profiles, which will be executed in series.  In this case, it must include
+only one value:
 
 * `profiles`: a comma separated list of previously defined profile names.
 
@@ -182,8 +185,7 @@ written this way:
 
 This may simplify the writing of complex configuration files and avoid
 typing errors.  An initial section of *variables* is possible using this
-feature.  The example configuration file above could have been written this
-way:
+feature.  For the example configuration file above:
 
     [VAR]
     cmd: cp -auv --strip-trailing-slashes
@@ -219,16 +221,16 @@ of its default locations, `~/.mybkp_profiles` or `~/.config/mybkp_profiles`.
 
 If that is not the case, replace `mybkp` with the actual path to the program
 and pass the location of the configuration file with the `-c` option (see
-**Options** section below).  For example, if the program is located in the
-diretory `programs/mybkp-2.2.1` under the user's home directory, he would call
-it like this:
+below).  For example, if the program is located in the diretory
+`programs/mybkp-2.2` under the user's home directory, he would call it like
+this:
 
-    $ ~/programs/mybkp-2.2.1/mybkp.py [options [option ...]] \
+    $ ~/programs/mybkp-2.2/mybkp.py [options [option ...]] \
                                     [profile [profile ...]]
 
 or, if the program was not executable:
 
-    $ python3 ~/programs/mybkp-2.2.1/mybkp.py \
+    $ python3 ~/programs/mybkp-2.2/mybkp.py \
               [options [option ...]] [profile [profile ...]]
 
 ## Profiles
@@ -269,7 +271,7 @@ This is a list of all the optional arguments accepted by the program:
 * `-b` / `--backup_directory` *name*
 
   Add `name` to the end of the profile's backup directory path.  Must be
-  followed by the name to add.  Example:
+  followed by the name to add.  Examples:
 
       $ mybkp -b 2020-August documents
 
@@ -368,8 +370,7 @@ that **THIS HAS NOT BEEN TESTED** so, proceed at your own risk :)
    wish to start with the sample configuration file you will need another
    simple text editor like Notepad++ or even the editor from the Python IDE
    that you just installed (IDLE), because the original file uses Unix line
-   endings that Notepad does not understand (the most recent versions of
-   Notepad don't have this problem).
+   endings that Notepad does not understand.
 
    Some notes about the configuration file:
 
@@ -384,7 +385,7 @@ that **THIS HAS NOT BEEN TESTED** so, proceed at your own risk :)
 Sample configuration file:
 
     ; Sample My Backup configuration file for MS Windows
-    ; Last updated: 2021-02-17 (AMD)
+    ; Last updated: 2020-09-01 (AMD)
 
     [documents]
     command: xcopy /d /e /i /f /h /r /k /b /j
@@ -421,7 +422,7 @@ Sample batch file to execute the `documents` profile:
     :: on 'documents' profile
 
     "C:\Program Files\Python\python.exe" ^
-      C:\Users\antonio\Programs\mybkp-2.2.1\mybkp.py ^
+      C:\Users\antonio\Programs\mybkp-2.2\mybkp.py ^
       --config mybkp_profiles.txt documents 
 
 Save this file in the folder where you uncompressed *My Backup* with a name
@@ -436,13 +437,13 @@ On this batch file I assume that the Python executable is in
 
 (you must check the actual location), that *My Backup* is installed at
 
-    C:\Users\antonio\Programs\mybkp-2.2.1
+    C:\Users\antonio\Programs\mybkp-2.2
 
 (you must change it to where you uncompressed it) and that the backup
 configuration file is called `mybkp_profiles.txt` (change it to the name
 you used).
 
-You must now create a similar batch file for each of the profiles.  The restore
+You must now create similar batch file for each of the profiles.  The restore
 batch files are identical, with just the addition of the `--restore` argument.
 
 To run the program you just need to open the *My Backup* program folder and
@@ -460,7 +461,7 @@ failure.
 Several backup strategies were invented over the years and I tried a bunch
 of them, but the one that makes me most comfortable is to have the backup
 replicate exactly the data structure I have at my computers.  That is the
-reason I use tools like `cp` and `rsync` and not backup or version
+reason I use tools like `cp` and `rsync` and not others like backup or version
 control programs.  This way, if I make a mistake and change a single file
 or delete a directory by acccident I can just resort to one of the backups
 and copy that file or directory back to my system, without worrying about
@@ -491,37 +492,39 @@ easy to get from the Internet and install in a new computer.  I am **very**
 concerned about losing any personal data I have on that computer, because if
 I don't have an updated backup there is no other place I can get it.
 
-The second step in planning a backup is to know where it will reside.  If you
-are paranoid like me about loosing your data, you will want to have more than
-one separate location.  I just do not use *cloud* backup, for privacy concerns
--- I barely trust my own systems, even encrypted as they always are, there is
-no way I would trust other people's computers (and that is what *the cloud*
-really is).
+The second step in planning a backup is know where it will reside.  If you are
+paranoid like me about loosing your data, you will want to have more than one
+separate location.  I just do not use *cloud* backup, for privacy concerns --
+I barely trust my own systems, always encrypted, there is no way I would
+trust other people's computers (and that is what *the cloud* really is).
 
-The use cases described below are mostly derived from these needs. I will use
-my user name (`antonio` or `adias`) on all examples, just because I had to
-choose one.
+The use cases described below are mostly derived from these needs and so I
+will use my user name (`antonio` or `adias`) on all examples.
 
-## Preliminary planning
 
-Before writing the profile configuration file, there is some information
-that needs to be gathered. Let's do it now.
+## Single profile
+
+This is the case where you have only one backup location, like and external
+USB drive or a folder on a `ssh` accessible server, and a single group of
+directories to backup.  Here you should probably configure a single
+profile named `default`, which will save you from typing the profile name
+at the command line every single time you want to update the backup.
 
 Start by identifying the directories you want to backup and the topmost
 directory of them all, that will serve as *base*.  In a modern Linux system,
-all directories will probably be under your home directory.  In this case we
-will use these:
+all directories will probably be under your home directory:
 
 * `/home/antonio/Documents`, the personnal documents folder
 * `/home/antonio/Pictures/Photos`, my personnal photos
 * `/home/antonio/Projects`, source code of my projects
 * `/home/antonio/Work`, professional work I keep at home
 
-The topmost directory is the home directory, `/home/antonio` and that will be
-the *base*.  The *directories* will be `Documents`, `Pictures/Photos`,
-`Projects` and `Work`.  If you don't want to completely configure a system when
-you have to install it from scratch, you should probably also backup your
-configuration files.  Let's say these are what I want to keep:
+Let's leave it at that :) The topmost directory is the home directory,
+`/home/antonio` and we will use that for *base*.  The *directories* will be
+`Documents`, `Pictures\Photos`, `Projects` and `Work`.  If you don't want to
+completely configure a system when you have to install it from scratch, you
+should probably also backup your configuration files.  Let's say these are
+what I want to keep:
 
 * `/home/antonio/.profile`
 * `/home/antonio/.bashrc`
@@ -556,17 +559,7 @@ we need to include:
   directories, meaning that they need to be copied also, not just their
   contents.
 
-With this information, we can now proceed to the use cases.
-
-## Single profile
-
-This is the case where you have only one backup location, like and external
-USB drive or a folder on a `ssh` accessible server, and a single group of
-directories to backup.  Here you should probably configure a single
-profile named `default`, which will save you from typing the profile name
-at the command line every single time you want to update the backup.
-
-The information colected above is all we need to make the configuration file:
+Now we have all the information we need to make the configuration file:
 
     ; Example 1
 
@@ -610,8 +603,9 @@ to change the *program* and *base* values of the configuration file above:
     directories: Documents, Pictures/Photos, Projects, Work,
                  .config/dotfiles
 
-`scp` will use your `ssh` configuration (if you have a remote backup server, you
-probably already know this).  The arguments for the program are as follows:
+`scp` will use your `ssh` configuration and, if you have a remote backup
+server, you probably already know this.  The arguments for the program are as
+follows:
 
 * `-r`: recursive mode, to copy subdirectories;
 * `-p`: to preserve file attributes;
@@ -637,9 +631,9 @@ check `ssh_config` man page for more information.
 ## Remote backup location using `rsync`
 
 For my own setup, `cp` and `scp` have a big drawback, they cannot keep two
-directories really synchronized.  This is because when updating a directory they
-only copy files and directories from the source to the destination, they will
-not delete the files or directories on the destination that you deleted or moved
+directories synchronized.  This is because when updating a directory they only
+copy files and directories from the source to the destination, they will not
+delete the files or directories on the destination that you deleted or moved
 on the source.  For example, if you have a backup of a directory and then
 rename a file on the source, when you update the backup you will then have two
 files: the old one and the copy of that file with the new name.
@@ -711,7 +705,7 @@ program, that problem is gone.
 Let's look at some examples.  The first supposes I have two backup locations:
 an external hard-drive, where I can keep a complete backup and a media server,
 where I just need the music, videos and photos.  For this, I would write the
-configuration file below:
+configuration file like this:
 
     ; Example 4
 
@@ -734,7 +728,7 @@ configuration file below:
     backup: media@media.home:/home/media
     directories: ${VAR:media}
 
-So, to make a full backup to the external drive I would call:
+So, to make a full backup the external drive I would call:
 
     $ mybkp -i backup-disk
 
@@ -752,7 +746,7 @@ Things to notice on this configuration file:
 
 Notice also that I always pass the `-i` option to `mybkp`, because I am using
 `rsync` as the tool to copy files.  If you don't want to keep writing that
-option or forget to use it, set an alias for the `mybkp` call in your
+option of forget to use it, set an alias for the `mybkp` call in your
 `.bash_aliases` or `.bashrc` configuration file as follows:
 
     alias mybkp='mybkp -i'
