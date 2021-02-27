@@ -1,0 +1,463 @@
+<h1 id="my-backup-manual">MY BACKUP MANUAL</h1>
+<p>The purpose of this program is to ease the backup and restore of a group of directories to/from a different location, using an external utility like the Unix programs <code>rsync</code> or <code>cp</code>. This is accomplished in the following manner:</p>
+<ol type="1">
+<li>Read a <em>backup profile</em> from a user defined configuration file.</li>
+<li>Iterate over the group of directories in the profile issuing the command to copy them from the base path to the destination directory.</li>
+</ol>
+<p>It is possible to have different profiles in the user configuration file, with different backup strategies and targets. For an overview of several possible use cases, check the section <a href="#use-cases">USE CASES</a> at the end of this manual.</p>
+<p>The program depends on <a href="https://www.python.org">Python 3</a> and the availability of the external utility you intend to use. It was thought to be used at the command line (terminal) of a Linux system, but it will probably work seamlessly in any unix like system like xBSD or MacOS, provided Python 3 is installed. It may also be possible to make it work under MS Windows, if the user knows enough system administration to tweak it to do that. Although I have not tested it in any of those systems, some tips to install and use the program under Windows are given in the subsection <a href="#usage-in-ms-windows">Usage in MS Windows</a> of the <a href="#usage">USAGE</a> section.</p>
+<h3 id="changes-history">Changes history:</h3>
+<ul>
+<li>2.3: Removed PDF documents. Added HTML manual and possibility to show it.</li>
+<li>2.2.1: Corrected bug that prevented an ‘ok’ to be shown after correctly parsing a composite profile.</li>
+<li>2.2: Added option to edit the configuration file</li>
+<li>2.1: Added option to list backup profiles Added option to display configuration file Composite profiles can now only be composed of simple profiles, thus preventing ‘infinite loop’ profiles</li>
+<li>2.0: Complete rewrite in Python. Configuration with possible multiple profiles in a separate file.</li>
+<li>1.0: Original bash script.</li>
+</ul>
+<h2 id="contents">CONTENTS</h2>
+<ul>
+<li><a href="#installation">INSTALLATION</a></li>
+<li><a href="#configuration">CONFIGURATION</a>
+<ul>
+<li><a href="#configuration-file-syntax">Configuration file syntax</a></li>
+</ul></li>
+<li><a href="#usage">USAGE</a>
+<ul>
+<li><a href="#profiles">Profiles</a></li>
+<li><a href="#options">Options</a></li>
+<li><a href="#usage-in-ms-windows">Usage in MS Windows</a></li>
+</ul></li>
+<li><a href="#use-cases">USE CASES</a>
+<ul>
+<li><a href="#single-profile">Single profile</a></li>
+<li><a href="#remote-backup-location">Remote backup location</a></li>
+<li><a href="#remote-backup-location-using-rsync">Remote backup location using <code>rsync</code></a></li>
+<li><a href="#backups-with-multiple-profiles">Backups with multiple profiles</a></li>
+<li><a href="#synchronizing-multiple-main-systems">Synchronizing multiple main systems</a></li>
+<li><a href="#snapshot-backups-and-backup-rotation">Snapshot backups and backup rotation</a></li>
+</ul></li>
+<li><a href="#license">LICENSE</a></li>
+</ul>
+<h2 id="installation">INSTALLATION</h2>
+<p>The instructions below are for installation on a modern Linux system. They may work in other modern Unix-like systems like BSD derivatives, including MacOS, but that has not been tested and may require some tweaking. Try it at your own risk. For MS Windows installation, refer to the subsection <a href="#usage-in-ms-windows">Usage in MS Windows</a> in the <a href="#usage">USAGE</a> section.</p>
+<ol type="1">
+<li><p>Download and unzip the program’s compressed file in a directory of your choosing. To download the most recent version, check <a href="https://ammdias.duckdns.org/downloads">AMMDIAS site</a>.</p></li>
+<li><p>Open a terminal in the directory where the program was uncompressed and run one of the following scripts to install locally or globally:</p>
+<ul>
+<li><p>Local installation:</p>
+<pre><code>$ bash local_install.sh</code></pre>
+<p>This will install the program for the current user only and is suited for single-user systems. The program will be installed on a directory under <code>$HOME/.local/lib</code> and a symbolic link <code>$HOME/.local/bin/mybkp</code> will be created to allow simple execution. The sample configuration file will be copied to <code>$HOME/.config/mybkp_profiles</code>.</p>
+<p>On most Linux systems the <code>$HOME/.local/bin</code> directory will be inserted in the execution PATH, if it exists. If that is not your case, you must make sure to insert it.</p></li>
+<li><p>Global installation:</p>
+<pre><code>$ sudo bash global_install.sh</code></pre>
+<p>This will install the program for all the system’s users and should be the option if it is installed in a multi-user system. The program will be installed under <code>/usr/local/lib</code> and a symlink <code>/usr/local/bin/mybkp</code> will be created. The configuration file must be copied by each user to a suitable location (see section below).</p></li>
+<li><p>Manual installation:</p>
+<p>Copy the uncompressed program directory to a location of your choosing and create a symbolic link to the program (<code>mybkp.py</code>) anywhere in your PATH.</p></li>
+</ul></li>
+<li><p>Test that the installation was successful with the command:</p>
+<pre><code>$ mybkp --help</code></pre></li>
+</ol>
+<p>Before using the program, you must configure at least one backup profile. Read the following section for instructions on how to accomplish that.</p>
+<h2 id="configuration">CONFIGURATION</h2>
+<p>This section will focus on the syntax of the configuration file for the program. For actual usage examples, please refer to the last section, <a href="#use-cases">USE CASES</a>. The calling syntax and program options may be found in the next section, <a href="#usage">USAGE</a></p>
+<p>The program will look for the backup profile to execute in a file in one of these locations:</p>
+<ul>
+<li>The path passed to the program with the <code>-c</code>/<code>--config</code> options</li>
+<li><code>$HOME/.mybkp_profiles</code></li>
+<li><code>$HOME/.config/mybkp_profiles</code></li>
+</ul>
+<p>If you installed the program globally or manually, do not forget to create that file with a text editor and save it to one of those locations. To copy the sample configuration file from the global installation to your user profile, use these commands:</p>
+<pre><code>$ mkdir -p ~/.config
+$ cp /usr/local/lib/mybkp-2.2/mybkp_profiles ~/.config/</code></pre>
+<p>If you wish to pass the configuration file location to the program manually at calling time, you may save it wherever you want.</p>
+<h3 id="configuration-file-syntax">Configuration file syntax</h3>
+<p>The <strong>configuration file</strong> is a simple text file, divided in <em>sections</em> started by a <em>name</em> between square brackets and followed by a number of <em>name</em>/<em>value</em> pairs. Empty lines or lines started with a semi-colon are ignored.</p>
+<p>A <strong>backup profile</strong> is a <em>section</em> that has a name chosen by the user and that must contain four <em>name</em>/<em>value</em> pairs:</p>
+<ul>
+<li><code>command</code>: the command to perform the backup, including all the command’s options; this must be a system recognizable command that is called with two positional arguments in the form <code>command &lt;source&gt; &lt;destination&gt;</code> (like <code>cp</code>, <code>scp</code> or <code>rsync</code>);</li>
+<li><code>base</code>: the parent directory where the directories to backup reside (e.g. your home directory);</li>
+<li><code>backup</code>: the directory where the backup will reside (e.g. an external disk drive or network storage device);</li>
+<li><code>directories</code>: a comma separated list of directories, below the <em>base</em> directory, to backup.</li>
+</ul>
+<p>A <strong>backup profile</strong> may also be composed of a list of previously defined profiles, which will be executed in series. In this case, it must include only one value:</p>
+<ul>
+<li><code>profiles</code>: a comma separated list of previously defined profile names.</li>
+</ul>
+<p>Below is an example of a configuration profile with two normal and one composite profile:</p>
+<pre><code>; Example configuration file
+
+[documents]
+command: cp -auv --strip-trailing-slashes
+base: /home/antonio
+backup: /media/antonio/BKP_DISK
+directories: Documents, Templates
+
+[media]
+command: cp -auv --strip-trailing-slashes
+base: /home/antonio
+backup: /media/antonio/BKP_DISK
+directories: Music, Pictures, Videos
+
+[all]
+profiles: documents, media</code></pre>
+<p>Note that the <code>command</code> value must include all the options and the <code>base</code> and <code>backup</code> values must be full paths. The <code>directories</code> value is a list of directories directly under the base and backup directories. If you wish to backup a subdirectory only, you must include it explicitly. For example, <code>Pictures/Photos</code> will backup that directory but not others under <code>Pictures</code> like <code>Pictures/Wallpapers</code> unless explicitly included also.</p>
+<p>A value may refer to the value of another section with the syntax <code>${SECTION:VALUE}</code>. For example, the <code>media</code> section above could have been written this way:</p>
+<pre><code>[media]
+command: ${documents:command} 
+base: /home/antonio
+backup: /media/antonio/BKP_DISK
+directories: Music, Pictures, Videos</code></pre>
+<p>This may simplify the writing of complex configuration files and avoid typing errors. An initial section of <em>variables</em> is possible using this feature. For the example configuration file above:</p>
+<pre><code>[VAR]
+cmd: cp -auv --strip-trailing-slashes
+home: /home/antonio
+bkp: /media/antonio/BKP_DISK
+
+[documents]
+command: ${VAR:cmd}
+base: ${VAR:home}
+backup: ${VAR:bkp}
+directories: Documents, Templates
+
+[media]
+command: ${VAR:cmd}
+base: ${VAR:home}
+backup: ${VAR:bkp}
+directories: Music, Pictures, Videos
+
+[all]
+profiles: documents, media</code></pre>
+<h2 id="usage">USAGE</h2>
+<p>This program is to be used from the command line, with the following syntax:</p>
+<pre><code>$ mybkp [option [option ...]] [profile [profile ...]]</code></pre>
+<p>This supposes that <code>mybkp</code> is a symbolic link in your execution PATH to the actual <code>mybkp.py</code> program location and that the configuration file is in one of its default locations, <code>~/.mybkp_profiles</code> or <code>~/.config/mybkp_profiles</code>.</p>
+<p>If that is not the case, replace <code>mybkp</code> with the actual path to the program and pass the location of the configuration file with the <code>-c</code> option (see below). For example, if the program is located in the directory <code>programs/mybkp-2.2</code> under the user’s home directory, he would call it like this:</p>
+<pre><code>$ ~/programs/mybkp-2.2/mybkp.py [options [option ...]] \
+                                [profile [profile ...]]</code></pre>
+<p>or, if the program was not executable:</p>
+<pre><code>$ python3 ~/programs/mybkp-2.2/mybkp.py \
+          [options [option ...]] [profile [profile ...]]</code></pre>
+<h3 id="profiles">Profiles</h3>
+<p>The only positional arguments accepted by the program are the names of the backup profiles to be executed. You may pass any number of profiles but their names must match exactly the names on the configuration file. If no profile name is passed, the program will try to execute a profile named <code>default</code>, if it exists.</p>
+<p>Examples:</p>
+<pre><code>$ mybkp documents</code></pre>
+<p>Will try to read and execute the profile named <code>documents</code> in the configuration file.</p>
+<pre><code>$ mybkp documents media</code></pre>
+<p>Will do the same for the profiles <code>documents</code> and <code>media</code>.</p>
+<pre><code>$ mybkp</code></pre>
+<p>Will try to read and execute the profile named <code>default</code> in the configuration file.</p>
+<h3 id="options">Options</h3>
+<p>This is a list of all the optional arguments accepted by the program:</p>
+<ul>
+<li><p><code>-h</code> / <code>--help</code>, <code>--copyright</code>, <code>--warranty</code>, <code>--version</code></p>
+<p>Display the program’s online help page, copyright, warranty or version information and exit the program. Example:</p>
+<pre><code>$ mybkp --help</code></pre></li>
+<li><p><code>-b</code> / <code>--backup_directory</code> <em>name</em></p>
+<p>Add <code>name</code> to the end of the profile’s backup directory path. Must be followed by the name to add. Examples:</p>
+<pre><code>$ mybkp -b 2020-August documents</code></pre>
+<p>Will copy the <code>documents</code> backup profile directories to the <code>2020-August</code> directory under the profile’s backup directory.</p></li>
+<li><p><code>-c</code> / <code>--config</code> <em>configuration file</em></p>
+<p>Use the configuration file provided instead of the default one. Must be followed by the (absolute or relative) path to the file. Examples:</p>
+<pre><code>$ mybkp -c test/alt_config_file test_profile</code></pre>
+<p>Will execute the <code>test_profile</code> profile in the <code>alt_config_file</code> configuration file that is located in the <code>test</code> directory.</p></li>
+<li><p><code>-e</code> / <code>--edit_config</code></p>
+<p>Try to edit the configuration file using the system’s default editor. The program will scan the ‘VISUAL’ and ‘EDITOR’ environment variables, by this order, to find the default editor command. If none of these variables is set the program will display an error message and exit.</p>
+<pre><code>$ mybkp -e</code></pre></li>
+<li><p><code>-i</code> / <code>--include_destination_directories</code></p>
+<p>By default, the copy command’s destination argument is the backup directory. This option will add the profile’s directories to the destination argument of the command, as required by some programs (like <code>rsync</code>). Example:</p>
+<pre><code>$ mybkp -i documents</code></pre>
+<p>If the <em>command</em> was defined in the <code>documents</code> profile as <code>rsync -aPhv</code>, the <em>directories</em> were defined as <code>Documents</code> and <code>Templates</code>, the <em>base</em> was defined as <code>/home/antonio</code> and the <em>backup</em> as <code>/media/antonio/BKP_DISK</code>, the commands issued by the program would be:</p>
+<pre><code>rsync -aPhv /home/antonio/Documents/ /media/antonio/BKP_DISK/Documents
+rsync -aPhv /home/antonio/Templates/ /media/antonio/BKP_DISK/Templates</code></pre>
+<p>Without this option, the commands would be:</p>
+<pre><code>rsync -aPhv /home/antonio/Documents/ /media/antonio/BKP_DISK
+rsync -aPhv /home/antonio/Templates/ /media/antonio/BKP_DISK</code></pre></li>
+<li><p><code>-l</code> / <code>--list_profiles</code></p>
+<p>Display a list of valid backup profiles on the configuration file and exit the program. Example:</p>
+<pre><code>$ mybkp -l</code></pre></li>
+<li><p><code>-n</code> / <code>--no_act</code></p>
+<p>Displays the commands that would be issued by the program instead of actually executing them. Example:</p>
+<pre><code>$ mybkp -n documents</code></pre></li>
+<li><p><code>-p</code> / <code>--print_config</code></p>
+<p>Display a verbatim copy of the configuration file and exit the program.</p>
+<pre><code>$ mybkp -p</code></pre></li>
+<li><p><code>-r</code> / <code>--restore</code></p>
+<p>Swaps the <em>base</em> and <em>backup</em> directories in the copy command’s arguments, copying the profile’s defined <em>directories</em> from the <em>backup</em> to the <em>base</em> directory, effectively restoring a backup to the original location. Example:</p>
+<pre><code>$ mybkp -r documents</code></pre></li>
+<li><p><code>--copyright</code></p>
+<p>Shows the program’s copyright information.</p></li>
+<li><p><code>--manual</code></p>
+<p>Displays this manual in a new web browser window.</p></li>
+<li><p><code>--version</code></p>
+<p>Shows the program’s name and version.</p></li>
+<li><p><code>--warranty</code></p>
+<p>Shows the program’s warranty information.</p></li>
+</ul>
+<h3 id="usage-in-ms-windows">Usage in MS Windows</h3>
+<p>As mentioned previously, <em>My Backup</em> was meant to be used in Linux systems but, as Python is ported to every major operating system, it may be possible, with some tweaking, to run it on other systems. In this subsection I will be giving some tips to what could be done to make it work in MS Windows. Notice that <strong>THIS HAS NOT BEEN TESTED</strong> so, proceed at your own risk :)</p>
+<ol type="1">
+<li><p>Start by downloading and installing the most recent version of the <a href="https://www.python.org/downloads/windows/">Python language to your system</a>.</p>
+<p>When prompted, answer yes to the question about adding Python to your system PATH.</p></li>
+<li><p>Download the most recent version of <em>My Backup</em> from <a href="https://ammdias.duckdns.org/downloads">AMMDIAS site</a> and uncompress it in a directory of your choosing.</p></li>
+<li><p>Inside that directory, create a configuration file with a text editor. If you create it from scratch, you may use the Windows Notepad. If you wish to start with the sample configuration file you will need another simple text editor like Notepad++ or even the editor from the Python IDE that you just installed (IDLE), because the original file uses Unix line endings that Notepad does not understand.</p>
+<p>Some notes about the configuration file:</p>
+<ul>
+<li>The <em>base</em> and <em>backup</em> directories must have their full path, including the drive;</li>
+<li>The <em>command</em> must be a Windows program, like <code>xcopy</code>.</li>
+</ul></li>
+<li><p>Create a <em>batch file</em> for each backup and restore operation. This way you may launch each operation just clicking on those files, without the need to use the command line.</p></li>
+</ol>
+<p>Sample configuration file:</p>
+<pre><code>; Sample My Backup configuration file for MS Windows
+; Last updated: 2020-09-01 (AMD)
+
+[documents]
+command: xcopy /d /e /i /f /h /r /k /b /j
+base: C:\Users\antonio
+backup: E:\
+directories: Documents, Desktop
+
+[media]
+command: xcopy /d /e /i /f /h /r /k /b /j
+base: C:\Users\antonio
+backup: E:\
+directories: Music, Pictures, Videos
+
+[all]
+profiles: documents, media</code></pre>
+<p>Explanation:</p>
+<p>There are three profiles, one to backup the <code>Documents</code> and <code>Desktop</code> folders of the user <code>antonio</code>, another to backup the <code>Music</code>, <code>Pictures</code> and <code>Videos</code> folders, and the last one is a composite profile that backups everything.</p>
+<p>Note that both the <em>base</em> and <em>backup</em> directories have their full paths: the first is Antonio’s personal folder and the other is the root of drive <code>E:</code> (which may be a separate drive, an external USB drive or even a network mapped drive).</p>
+<p>Both profiles use the <code>xcopy</code> command with the same flags. For their meaning, check the MS Windows documentation.</p>
+<p>Sample batch file to execute the <code>documents</code> profile:</p>
+<pre><code>:: Sample Windows batch file to execute My Backup
+:: on &#39;documents&#39; profile
+
+&quot;C:\Program Files\Python\python.exe&quot; ^
+  C:\Users\antonio\Programs\mybkp-2.2\mybkp.py ^
+  --config mybkp_profiles.txt documents </code></pre>
+<p>Save this file in the folder where you uncompressed <em>My Backup</em> with a name with the extension “.bat”. If you use Notepad to create the file you must surround the name in double-quotes, otherwise the file will be saved with a “.txt” extension. For example, this batch file could be named <code>"backup_documents.bat"</code>.</p>
+<p>On this batch file I assume that the Python executable is in</p>
+<pre><code>C:\Program Files\Python\python.exe</code></pre>
+<p>(you must check the actual location), that <em>My Backup</em> is installed at</p>
+<pre><code>C:\Users\antonio\Programs\mybkp-2.2</code></pre>
+<p>(you must change it to where you uncompressed it) and that the backup configuration file is called <code>mybkp_profiles.txt</code> (change it to the name you used).</p>
+<p>You must now create similar batch file for each of the profiles. The restore batch files are identical, with just the addition of the <code>--restore</code> argument.</p>
+<p>To run the program you just need to open the <em>My Backup</em> program folder and click on the desired batch file. You may even create links on the desktop or on the Start Menu, if you prefer.</p>
+<h2 id="use-cases">USE CASES</h2>
+<p>The way this program works matches closely the way I maintain my backups. It was made for that particular purpose: simplify and organize the backup of my personal data, trying to avoid data loss due to mistakes or hardware failure.</p>
+<p>Several backup strategies were invented over the years and I tried a bunch of them, but the one that makes me most comfortable is to have the backup replicate exactly the data structure I have at my computers. That is the reason I use tools like <code>cp</code> and <code>rsync</code> and not others like backup or version control programs. This way, if I make a mistake and change a single file or delete a directory by accident I can just resort to one of the backups and copy that file or directory back to my system, without worrying about reverting other changes I could have made or nit-picking through old versions to find what I want. Of course, this is what fits <strong>me</strong> – other people will have different needs and preferences.</p>
+<p>The very first thing one should do when planning a backup strategy is to identify what needs to be backed up. In my case, in order of importance, this is what I found:</p>
+<ul>
+<li>In my personal computer:
+<ol type="1">
+<li>Personal documents and projects: legal documents, finance information, source code and private stuff like emails and messages. Also, photos and personal videos.</li>
+<li>Configuration preferences: <em>dot-files</em> (<code>bashrc</code>, <code>vimrc</code>, etc.), and system setup information or instructions.</li>
+<li>Multimedia: books, music, movies…</li>
+</ol></li>
+<li>In my server:
+<ol type="1">
+<li>Server data, like web server files and databases.</li>
+<li>Server configuration, systemd scripts, SSL keys, etc.</li>
+</ol></li>
+</ul>
+<p>I do not backup whole systems or programs: I know I can restore them from scratch in a few hours at most. For example, if my personal computer burns I am not worried about the programs or operating system, because that is easy to get from the Internet and install in a new computer. I am <strong>very</strong> concerned about losing any personal data I have on that computer, because if I don’t have an updated backup there is no other place I can get it.</p>
+<p>The second step in planning a backup is know where it will reside. If you are paranoid like me about loosing your data, you will want to have more than one separate location. I just do not use <em>cloud</em> backup, for privacy concerns – I barely trust my own systems, always encrypted, there is no way I would trust other people’s computers (and that is what <em>the cloud</em> really is).</p>
+<p>The use cases described below are mostly derived from these needs and so I will use my user name (<code>antonio</code> or <code>adias</code>) on all examples.</p>
+<h3 id="single-profile">Single profile</h3>
+<p>This is the case where you have only one backup location, like and external USB drive or a folder on a <code>ssh</code> accessible server, and a single group of directories to backup. Here you should probably configure a single profile named <code>default</code>, which will save you from typing the profile name at the command line every single time you want to update the backup.</p>
+<p>Start by identifying the directories you want to backup and the topmost directory of them all, that will serve as <em>base</em>. In a modern Linux system, all directories will probably be under your home directory:</p>
+<ul>
+<li><code>/home/antonio/Documents</code>, the personal documents folder</li>
+<li><code>/home/antonio/Pictures/Photos</code>, my personal photos</li>
+<li><code>/home/antonio/Projects</code>, source code of my projects</li>
+<li><code>/home/antonio/Work</code>, professional work I keep at home</li>
+</ul>
+<p>Let’s leave it at that :) The topmost directory is the home directory, <code>/home/antonio</code> and we will use that for <em>base</em>. The <em>directories</em> will be <code>Documents</code>, <code>Pictures\Photos</code>, <code>Projects</code> and <code>Work</code>. If you don’t want to completely configure a system when you have to install it from scratch, you should probably also backup your configuration files. Let’s say these are what I want to keep:</p>
+<ul>
+<li><code>/home/antonio/.profile</code></li>
+<li><code>/home/antonio/.bashrc</code></li>
+<li><code>/home/antonio/.bash_aliases</code></li>
+</ul>
+<p>The problem is that these files all reside in a directory (the home directory) where there is also a lot of files and directories I do not want to backup. The solution I found is to put all those files in a single directory and then make symbolic links to them in their previous location. So, all those files reside in <code>/home/antonio/.config/dotfiles</code> and I that is the directory I have to add to the configuration file.</p>
+<p>Now, let’s say the backup is to reside in an external USB drive partition named <code>BKP_DISK</code>. In Ubuntu Linux, external USB drives are automatically mounted when first accessed in a directory named after the partition name under the <code>/media/username</code> directory. So, in our example the <em>backup</em> location will be <code>/media/antonio/BKP_DISK</code>.</p>
+<p>Finally, we need to decide on what tool we will use to copy the data to the backup location. Let’s start with the basic, <code>cp</code>, and decide what options we need to include:</p>
+<ul>
+<li><code>-a</code> / <code>--archive</code>: this option will ensure that symbolic links are copied (instead of the target of those links), that all file attributes will be preserved if possible and that the copy will be recursive, i.e. will include subdirectories;</li>
+<li><code>-u</code> / <code>--update</code>: this option will make subsequent copies faster, as it will only copy files that are missing from the backup or that have been changed after the last backup;</li>
+<li><code>-v</code> / <code>--verbose</code>: to print on screen the changes that are being made;</li>
+<li><code>--strip-trailing-slashes</code>: to remove trailing slashes from source directories, meaning that they need to be copied also, not just their contents.</li>
+</ul>
+<p>Now we have all the information we need to make the configuration file:</p>
+<pre><code>; Example 1
+
+[default]
+command: cp -auv --strip-trailing-slashes
+base: /home/antonio
+backup: /media/antonio/BKP_DISK
+directories: Documents, Pictures/Photos, Projects, Work,
+             .config/dotfiles</code></pre>
+<p>To make or update the backup, all we need to do now is connect the external drive to the computer, open it and, in a terminal, call <code>mybkp</code>. First, we should always test the program in <em>dry-run</em> mode (see <a href="#usage">USAGE</a> above), to test if the commands given are what we want:</p>
+<pre><code>$ mybkp -n</code></pre>
+<p>Then, if all seems ok, do the actual backup:</p>
+<pre><code>$ mybkp</code></pre>
+<p>To restore the backup completely, we would do:</p>
+<pre><code>$ mybkp -r</code></pre>
+<p>Or, if what we needed was to simply recover a single file or directory, just open the backup drive and copy them directly to our system.</p>
+<h3 id="remote-backup-location">Remote backup location</h3>
+<p>If the backup is located on a remote machine, we cannot use <code>cp</code>. One solution is to use <code>scp</code>, to make the copies over a <code>ssh</code> connection. For this, we have to change the <em>program</em> and <em>base</em> values of the configuration file above:</p>
+<pre><code>; Example 2
+
+[default]
+command: scp -rpv
+base: /home/antonio
+backup: antonio@backup.home:/home/antonio/laptop-backup
+directories: Documents, Pictures/Photos, Projects, Work,
+             .config/dotfiles</code></pre>
+<p><code>scp</code> will use your <code>ssh</code> configuration and, if you have a remote backup server, you probably already know this. The arguments for the program are as follows:</p>
+<ul>
+<li><code>-r</code>: recursive mode, to copy subdirectories;</li>
+<li><code>-p</code>: to preserve file attributes;</li>
+<li><code>-v</code>: to explain what is being done, like in <code>cp</code>.</li>
+</ul>
+<p>There is one substantial difference between <code>cp</code> and <code>scp</code>: the latter will follow links and copy the actual file instead of the link. If that is not what you wish, a different program must be used, like <code>rsync</code> (see subsection below). If the <code>ssh</code> server is listening on a port other than the default, the port number must be included in the arguments. Example if the port is 2222:</p>
+<pre><code>command: scp -rpv -P 2222</code></pre>
+<p>The <em>backup</em> directory must include the remote user name and server name (or IP address) followed by a colon and then the directory path on the server. If you have the host configured in your local <code>ssh</code> configuration you may use the profile name instead. HOST profile names are a good thing, as they allow associating a host configuration (server name/address, login name, port) with a single name, thus simplifying the access to a remote server over <code>ssh</code> – check <code>ssh_config</code> man page for more information.</p>
+<h3 id="remote-backup-location-using-rsync">Remote backup location using <code>rsync</code></h3>
+<p>For my own setup, <code>cp</code> and <code>scp</code> have a big drawback, they cannot keep two directories synchronized. This is because when updating a directory they only copy files and directories from the source to the destination, they will not delete the files or directories on the destination that you deleted or moved on the source. For example, if you have a backup of a directory and then rename a file on the source, when you update the backup you will then have two files: the old one and the copy of that file with the new name.</p>
+<p>For some uses, this may be exactly what you want as you will keep old versions of files and directories, but in my case, where what I usually want is to keep exact copies of my systems’ files in the backup, this doesn’t work (I would have to manually delete old files, which would invalidate the purpose of the backup program).</p>
+<p><code>rsync</code> solves this problem and can be a drop-in replacement for <code>cp</code> or <code>scp</code> in the configuration of <em>My Backup</em>. It is not installed by default on Ubuntu Desktop (the Linux distribution I use) and probably the same happens on other Linux distributions, but is certainly available on all repositories. It is also natively available on xBSD and MacOS systems.</p>
+<p>Taking the previous example, all you needed to use rsync instead of <code>scp</code> would be to replace the <em>command</em> value in the configuration profile:</p>
+<pre><code>; Example 3
+
+[default]
+command: rsync -aPhv --delete
+base: /home/antonio
+backup: antonio@backup.home:/home/antonio/laptop-backup
+directories: Documents, Pictures/Photos, Projects, Work,
+             .config/dotfiles</code></pre>
+<p>As <code>rsync</code> also uses <code>ssh</code>, the <em>backup</em> value remains the same. The options I used are as follows:</p>
+<ul>
+<li><code>-a</code>: <em>archive mode</em>, which means walk into subdirectories, preserve symbolic links, attributes, ownership, etc.;</li>
+<li><code>-P</code>: display copy progress (useful for big copies);</li>
+<li><code>-h</code>: display human readable file sizes (KB, MB, etc);</li>
+<li><code>-v</code>: <em>verbose mode</em>, to explain what the program is doing</li>
+<li><code>--delete</code>: delete files and directories from the destination directory that do not exist in the source directory.</li>
+</ul>
+<p>There is one difference that must be taken into account when using <code>rsync</code>: this program expects the name of the directories in the destination argument. You can force this behaviour passing the <code>--include_destination_directories</code> or its short version <code>-i</code> to <em>My Backup</em>:</p>
+<pre><code>$ mybkp -i</code></pre>
+<p>This is also necessary when restoring the backup:</p>
+<pre><code>$ mybkp -ir</code></pre>
+<p>or</p>
+<pre><code>$ mybkp --include_destination_directories --restore</code></pre>
+<p>When using the <code>--delete</code> option with <code>rsync</code> extra care should be taken when doing a backup. If you accidentally delete a file or directory from the source and then do a backup, that file or directory will also be deleted from the backup. Before doing a backup, make sure that the original system is correct!</p>
+<h3 id="backups-with-multiple-profiles">Backups with multiple profiles</h3>
+<p>The main reason I rewrote <em>My Backup</em> was that I had different backups in different places. As the previous version kept the configuration on the script itself, I had to have a different script for each backup and that was becoming unmaintainable. Now, with the configuration on a separate file and the possibility of using completely different backup profiles with the same program, that problem is gone.</p>
+<p>Let’s look at some examples. The first supposes I have two backup locations: an external hard-drive, where I can keep a complete backup and a media server, where I just need the music, videos and photos. For this, I would write the configuration file like this:</p>
+<pre><code>; Example 4
+
+[VAR]
+cmd: rsync -aPhv --delete
+home: /antonio/home
+media: Music, Pictures/Photos, Videos
+
+[backup-disk]
+command: ${VAR:cmd}
+base: ${VAR:home}
+backup: /media/antonio/BKP_DISK
+directories: Documents, Templates, Projects, Work,
+             ${VAR:media},
+             .config/dotfiles
+
+[media-server]
+command: ${VAR:cmd}
+base: ${VAR:home}
+backup: media@media.home:/home/media
+directories: ${VAR:media}</code></pre>
+<p>So, to make a full backup the external drive I would call:</p>
+<pre><code>$ mybkp -i backup-disk</code></pre>
+<p>and to backup just the media files to the media server:</p>
+<pre><code>$ mybkp -i media-server</code></pre>
+<p>Things to notice on this configuration file:</p>
+<ul>
+<li>I used variables for the <em>command</em> and <em>base</em> values and also for the media directories: see the <strong>CONFIGURATION</strong> section to know how to use them.</li>
+<li>The directories value on the <code>backup-disk</code> profile are split over three lines. This is possible as long as the configuration parser can distinguish each extra line from the name of a value or the start of a section.</li>
+</ul>
+<p>Notice also that I always pass the <code>-i</code> option to <code>mybkp</code>, because I am using <code>rsync</code> as the tool to copy files. If you don’t want to keep writing that option of forget to use it, set an alias for the <code>mybkp</code> call in your <code>.bash_aliases</code> or <code>.bashrc</code> configuration file as follows:</p>
+<pre><code>alias mybkp=&#39;mybkp -i&#39;</code></pre>
+<p>This way, the shell will replace <code>mybkp</code> with <code>mybkp -i</code> every time you call it.</p>
+<p>If I feel the need to add another backup, I just have to add the corresponding section to the configuration file. For example, let’s say I wish to backup the configuration files and scripts from my web server, that live on the directories <code>source</code> and <code>bin</code> of my user on that system, to my laptop. This is the section I would add to the previous configuration file:</p>
+<pre><code>; Example 4.1
+
+[web-server]
+command: ${VAR:cmd}
+base: antonio@webserver.home:/home/antonio/
+backup: ${VAR:home}/Projects/webserver/config
+directories: source, bin</code></pre>
+<p>See that the <em>base</em> value is now the remote directory and the <em>backup</em> is a directory on the local system, and that I used a variable for the first part. Variables are just bits of text that will be replaced by their value when parsed by the program. The usage is the same as for the other profiles, even though the direction of the backup is different (from remote to local):</p>
+<pre><code>$ mybkp -i web-server</code></pre>
+<h3 id="synchronizing-multiple-main-systems">Synchronizing multiple main systems</h3>
+<p>If you work on the same project or files in two different machines, say your home desktop and the one at work, you may wish to keep those files in sync. This may be accomplished with <em>My Backup</em>, if it is installed on both machines.</p>
+<p>Let’s say the transport from one machine to the other is done with a USB stick (with label <code>WORKDEV</code>) and the files you need are all on the <code>Work/Big Project</code> directory. This is the profile to add to your home configuration file:</p>
+<pre><code>; Example 4.2
+
+[bigproject]
+command: ${VAR:cmd}
+base: ${VAR:home}/Work
+backup: /media/antonio/WORKDEV
+directories: Big Project</code></pre>
+<p>At work, the profile would be similar, of course, taking into account the different user and directory names:</p>
+<pre><code>; Example 5
+
+[bigproject]
+command: rsync -aPhv --delete
+base: /home/adias/Projects
+backup: /media/adias/WORKDEV
+directories: Big Project</code></pre>
+<p>At the end of each day, I would have to upload the changes I made from the work PC to the USB device:</p>
+<pre><code>$ mybkp -i bigproject</code></pre>
+<p>and at home, download (<em>restore</em>) the changes to my home desktop:</p>
+<pre><code>$ mybkp -ir bigproject</code></pre>
+<p>If I do some work at home, I would have to do the same thing (but in the opposite direction) before going to work.</p>
+<p>If I had <code>ssh</code> access to the work computer, I would only need to use <em>My Backup</em> at home:</p>
+<pre><code>; Example 4.3
+
+[bigproject]
+command: ${VAR:cmd}
+base: adias@cooljobs.com:/home/adias/Projects
+backup: ${VAR:home}/Work
+directories: Big Project</code></pre>
+<p>Getting home after a day at work I would only have to download the changes from the work PC and, after working on the project at home, upload them to the machine at work:</p>
+<pre><code>$ mybkp -i bigproject</code></pre>
+<p>… do some work …</p>
+<pre><code>$ mybkp -ir bigproject</code></pre>
+<h3 id="snapshot-backups-and-backup-rotation">Snapshot backups and backup rotation</h3>
+<p>The last use case in this manual is for those who like to have <em>snapshot</em> kind of backups, i.e. backups that reflect the state at different points in time. This may be useful to revert changes made before the last backup.</p>
+<p>The most basic way of doing this with <em>My Backup</em> is as explained in the <a href="#usage">USAGE</a> section, using the <code>--backup_directory</code> option to indicate the directory where the bakup will reside. If I wanted to keep snapshots of the <code>Work</code> and <code>Projects</code> directories I would start to make an appropriate profile:</p>
+<pre><code>; Example 4.4
+
+[projects]
+command: ${VAR:cmd}
+base: ${VAR:home}
+backup: /media/antonio/BKP_DISK/snapshots
+directories: Projects, Work</code></pre>
+<p>Then, for each snapshot I would have to call <code>mybkp</code> on that profile and with the directory name I wish to use under the <code>snapshots</code> directory of the backup external drive. One possibility is to use the date when the backup is made as the directory name:</p>
+<pre><code>$ mybkp -i -b 2020-09-03 projects</code></pre>
+<p>This would copy the <code>Projects</code> and <code>Work</code> directories to the <code>snapshots/2020-09-03</code> directory of the backup disk. I could simplify the calling process by creating an alias that would insert the date automatically, using the <code>date</code> command with a custom format string:</p>
+<pre><code>alias smybkp=&#39;mybkp -i -b `date +%Y-%m-%d`&#39;</code></pre>
+<p>Now I would only have to use</p>
+<pre><code>$ smybkp projects</code></pre>
+<p>to achieve the same result.</p>
+<p>With this program option it is also possible to create a <em>circular</em> bakup, i.e. a series of backups where the last overwrites the most ancient one. Let’s say I want to have a 7-deep circular backup, one for each day of the week. Everyday I do a backup, I will overwrite the backup of the same day of the last week. Take this backup using the <code>projects</code> profile on a Monday:</p>
+<pre><code>$ mybkp -i -b Monday projects</code></pre>
+<p>The backup directory would be <code>snapshots/Monday</code> on the backup disk. I could also simplify it with an alias:</p>
+<pre><code>alias cmybkp=&#39;mybkp -i -b `date +%A`&#39;</code></pre>
+<p>This completes the uses cases and I think it covers most things you could do with this program. If you have any question, please contact me by email using the address at the top of this manual.</p>
+<h2 id="license">LICENSE</h2>
+<p>Copyright (C) 2021 António Manuel Dias</p>
+<p>contact: ammdias@gmail.com</p>
+<p>website: <a href="https://ammdias.duckdns.org/downloads">AMMDIAS</a></p>
+<p>This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</p>
+<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>
+<p>You should have received a copy of the <a href="http://www.gnu.org/licenses">GNU General Public License</a> along with this program. If not, please check the site above.</p>

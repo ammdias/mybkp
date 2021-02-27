@@ -101,4 +101,7 @@ OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY
 HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 '''
 
-
+MANUAL = '''The program's manual should open in a new web browser window.
+If not, please read the manual in text format (actually *Markdown*) in
+the program's installation directory.
+'''

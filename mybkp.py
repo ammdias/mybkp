@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Changes:
+    2.3: Removed PDF documents. Added HTML manual and option to show it.
   2.2.1: Corrected bug that prevented an 'ok' to be shown after correctly
            parsing a composite profile.
     2.2: Added option to edit the configuration file.
@@ -31,8 +32,8 @@ Changes:
          Configuration with possible multiple profiles in separate file.
 """
 
-__version__ = '2.2.1'
-__date__ = '2021-02-17'
+__version__ = '2.3'
+__date__ = '2021-02-27'
 __license__ ='GNU General Public License version 3'
 __author__ = 'António Manuel Dias <ammdias@gmail.com>'
 
@@ -41,6 +42,7 @@ import sys
 import os.path
 import argparse
 import subprocess
+import webbrowser
 from configparser import ConfigParser, ExtendedInterpolation
 from mybkp_text import *
 
@@ -69,6 +71,9 @@ def _run():
         print(NAME, __version__, '\n')
         print(SHORT_COPYRIGHT, '\n')
         _quit(WARRANTY)
+    elif args.manual:
+        webbrowser.open_new(os.path.join(sys.path[0], 'MANUAL.html'))
+        _quit(MANUAL)
     elif args.version:
         _quit(f"{NAME} {__version__}")
     else:
@@ -193,6 +198,9 @@ def parse_cli_arguments():
 
     parser.add_argument("--warranty", action="store_true",
                         help= 'show warranty information and exit.')
+
+    parser.add_argument("--manual", action="store_true",
+                        help= 'display the manual in a web browser window and exit.')
 
     parser.add_argument("--version", action="store_true",
                         help='show version information and exit.')

@@ -6,7 +6,7 @@ if ! [ -x "$(command -v python3)" ]; then
     exit 1
 fi
 
-chmod +s mybkp.py
+chmod +x mybkp.py
 
 DIR="`dirname \"$0\"`"
 DIR="`( cd \"$DIR\" && pwd )`"
