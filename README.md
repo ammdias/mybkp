@@ -24,8 +24,7 @@ along with this program.  If not, see http://www.gnu.org/licenses/.
 
 Changes history:
 
-* 2.4: Check source and destination directories are valid.
-       Changed installation scripts.
+* 2.4: Changed installation scripts.
        Changed README and MANUAL accordingly.
 * 2.3: Corrected bug that prevented manual from being displayed.
 * 2.2.1: Corrected bug that prevented an 'ok' to be shown after correctly

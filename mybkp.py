@@ -20,8 +20,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Changes:
-    2.4: Check source and destination directories are valid.
-         Changed installation scripts.
+    2.4: Changed installation scripts.
          Changed README and MANUAL accordingly.
     2.3: Removed PDF documents. Added HTML manual and option to show it.
   2.2.1: Corrected bug that prevented an 'ok' to be shown after correctly
@@ -146,22 +145,11 @@ def backup(config, restore=False, dryrun=False, incdirs=False, bkpdir=None):
     for i in directories:
         s,d = (os.path.join(src, i, ''),     # '' ensures source is a directory
                os.path.join(dest, i) if incdirs else dest)
-
-        # ensure source and destination are valid directories
-        if not os.path.isdir(s):
-            _quit(f'Source directory is not valid: {s}')
-        if os.path.exists(d):
-            if not os.path.isdir(d):
-                _quit(f'Destination directory is not valid: {d}')
-            if os.path.samefile(s, d):
-                _quit(f'Source and destination cannot be the same: {s}')
-
         if dryrun:
             print(f'{config["command"]} "{s}" "{d}"')
         else:
             print(f'{action} directory {i} ...')
             try:
-                os.makedirs(d, exist_ok=True)    # ensure destination directory exists
                 if subprocess.run((*command, s, d)).returncode:
                     _quit("Profile command exited with non-zero status.")
             except Exception as e:
