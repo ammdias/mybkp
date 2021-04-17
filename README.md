@@ -1,6 +1,6 @@
 MY BACKUP README
 ================
-version 2.3
+version 2.4
 
 Copyright (C) 2021 António Manuel Dias
 
@@ -24,6 +24,7 @@ along with this program.  If not, see http://www.gnu.org/licenses/.
 
 Changes history:
 
+* 2.4: Check source and destination directories are valid
 * 2.3: Corrected bug that prevented manual from being displayed.
 * 2.2.1: Corrected bug that prevented an 'ok' to be shown after correctly
              parsing a composite profile.

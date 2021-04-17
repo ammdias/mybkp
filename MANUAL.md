@@ -24,6 +24,7 @@ are given in the subsection [Usage in MS Windows] of the [USAGE] section.
 
 ### Changes history:
 
+* 2.4: Check source and destination directories are valid
 * 2.3: Removed PDF documents.  Added HTML manual and possibility to show it.
 * 2.2.1: Corrected bug that prevented an 'ok' to be shown after correctly
            parsing a composite profile.
