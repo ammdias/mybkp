@@ -3,7 +3,7 @@
 """
 
 FILES = ('LICENSE.md', 'LICENSE.html', 'MANUAL.md', 'MANUAL.html',
-         'README.md', 'mybkp.py', 'mybkp_text.py')
+         'README.md', 'mybkp.py', 'mybkp_text.py', '__version__')
 APP_NAME = 'MyBkp' # will be the name of installation directory
 START_SCRIPT = 'mybkp.py'
 LINK_NAME = 'mybkp'

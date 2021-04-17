@@ -24,7 +24,9 @@ are given in the subsection [Usage in MS Windows] of the [USAGE] section.
 
 ### Changes history:
 
-* 2.4: Check source and destination directories are valid
+* 2.4: Check source and destination directories are valid.
+       Changed installation scripts.
+       Changed README and MANUAL accordingly.
 * 2.3: Removed PDF documents.  Added HTML manual and possibility to show it.
 * 2.2.1: Corrected bug that prevented an 'ok' to be shown after correctly
            parsing a composite profile.
@@ -62,46 +64,45 @@ INSTALLATION
 ------------
 
 The instructions below are for installation on a modern Linux system.  They
-may work in other modern Unix-like systems like BSD derivatives, including
+may work on other modern Unix-like systems like BSD derivatives, including
 MacOS, but that has not been tested and may require some tweaking.  Try it at
-your own risk.  For MS Windows installation, refer to the subsection
-[Usage in MS Windows] in the [USAGE] section.
+your own risk.  For MS Windows installation, refer to the section
+[Usage in MS Windows].
 
 1. Download and unzip the program's compressed file in a directory of your
-   choosing.  To download the most recent version, check [AMMDIAS
-   site](https://ammdias.duckdns.org/downloads).
+   choosing.  To download the most recent version, check the [My Backup
+   GitHub page](https://github.com/ammdias/mybkp).
 
 2. Open a terminal in the directory where the program was uncompressed and run
-   one of the following scripts to install locally or globally:
+   the installation script with Python 3:
 
-   * Local installation:
+       $ python3 INSTALL.py
 
-         $ bash local_install.sh
+   You will be prompted for the installation directory --- i.e. the directory
+   under which the folder containing all the application files will be placed
+   --- and for the start link directory --- i.e. the directory where the
+   symbolic link for the program will be created.
 
-     This will install the program for the current user only and is suited for
-     single-user systems.  The program will be installed on a directory under
-     `$HOME/.local/lib` and a symbolic link `$HOME/.local/bin/mybkp` will be
-     created to allow simple execution.  The sample configuration file will be
-     copied to `$HOME/.config/mybkp_profiles`.
+   The default directories will install the program for the current user only
+   and are suited for single-user systems.  If you want to keep these
+   settings, just press ENTER when prompted.  The program will be installed in
+   the directory `$HOME/.local/lib/MyBkp` and the symbolic link
+   `$HOME/.local/bin/mybkp` will be created.  On most Linux systems the
+   `$HOME/.local/bin` directory will be inserted in the execution PATH, if it
+   exists. If it doesn't, you will have to add it manually.  The sample
+   configuration file will be copied to `$HOME/.config/mybkp_profiles`.
 
-     On most Linux systems the `$HOME/.local/bin` directory will be inserted in
-     the execution PATH, if it exists.  If that is not your case, you must make
-     sure to insert it.
+   If you want to install the program for all the users of the system, you
+   should change the directories accordingly, e.g. `/usr/local/lib` for the
+   installation directory and `/usr/local/bin` for the start link.  Of
+   course, you will need to run the installation script with administration
+   privileges:
 
-   * Global installation:
+       $ sudo python3 INSTALL.py
 
-         $ sudo bash global_install.sh
-
-     This will install the program for all the system's users and should be the
-     option if it is installed in a multi-user system.  The program will be
-     installed under `/usr/local/lib` and a symlink `/usr/local/bin/mybkp` will
-     be created.  The configuration file must be copied by each user to a
-     suitable location (see section below).
-
-   * Manual installation:
-
-     Copy the uncompressed program directory to a location of your choosing and
-     create a symbolic link to the program (`mybkp.py`) anywhere in your PATH.
+   If a previous installation exists on the selected directory, you will be
+   asked if you want to overwrite it.  Answer "`yes`" (or just "`y`") if that
+   is the case or "`no`"/"`n`" if not.
 
 3. Test that the installation was successful with the command:
 
@@ -116,7 +117,7 @@ CONFIGURATION
 This section will focus on the syntax of the configuration file for the program.
 For actual usage examples, please refer to the last section, [USE CASES].
 The calling syntax and program options may be found in the next section,
-[USAGE]
+[USAGE].
 
 The program will look for the backup profile to execute in a file in one of
 these locations:
@@ -125,16 +126,13 @@ these locations:
 * `$HOME/.mybkp_profiles`
 * `$HOME/.config/mybkp_profiles`
 
-If you installed the program globally or manually, do not forget to create
-that file with a text editor and save it to one of those locations.  To copy
-the sample configuration file from the global installation to your user
-profile, use these commands:
+If you have your `$VISUAL` or `$EDITOR` environment variable properly set and
+used the installation script to install the program, you may edit the default
+configuration file with the command:
 
-    $ mkdir -p ~/.config
-    $ cp /usr/local/lib/mybkp-2.2/mybkp_profiles ~/.config/
+    $ mybkp --edit_config
 
-If you wish to pass the configuration file location to the program manually
-at calling time, you may save it wherever you want.
+If not, just use your favourite text editor to edit or create it.
 
 ### Configuration file syntax
 
@@ -394,8 +392,8 @@ that **THIS HAS NOT BEEN TESTED** so, proceed at your own risk :)
    When prompted, answer yes to the question about adding Python to your
    system PATH.
 
-2. Download the most recent version of *My Backup* from [AMMDIAS
-   site](https://ammdias.duckdns.org/downloads) and uncompress it in a
+2. Download the most recent version of *My Backup* from
+   [GitHub](https://github.com/ammdias/mybkp) and uncompress it in a
    directory of your choosing.
 
 4. Inside that directory, create a configuration file with a text editor.
@@ -936,7 +934,7 @@ Copyright (C) 2021 António Manuel Dias
 
 contact: ammdias@gmail.com
 
-website: [AMMDIAS](https://ammdias.duckdns.org/downloads)
+website: [GitHub](https://github.com/ammdias/mybkp)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

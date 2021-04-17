@@ -20,7 +20,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Changes:
-    2.4: Check source and destination directories are valid
+    2.4: Check source and destination directories are valid.
+         Changed installation scripts.
+         Changed README and MANUAL accordingly.
     2.3: Removed PDF documents. Added HTML manual and option to show it.
   2.2.1: Corrected bug that prevented an 'ok' to be shown after correctly
            parsing a composite profile.
@@ -148,10 +150,11 @@ def backup(config, restore=False, dryrun=False, incdirs=False, bkpdir=None):
         # ensure source and destination are valid directories
         if not os.path.isdir(s):
             _quit(f'Source directory is not valid: {s}')
-        if os.path.exists(d) and not os.path.isdir(d):
-            _quit(f'Destination directory is not valid: {d}')
-        if os.path.samefile(s, d):
-            _quit(f'Source and destination cannot be the same: {s}')
+        if os.path.exists(d):
+            if not os.path.isdir(d):
+                _quit(f'Destination directory is not valid: {d}')
+            if os.path.samefile(s, d):
+                _quit(f'Source and destination cannot be the same: {s}')
 
         if dryrun:
             print(f'{config["command"]} "{s}" "{d}"')

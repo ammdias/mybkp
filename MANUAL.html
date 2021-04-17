@@ -8,7 +8,7 @@
 <p>The program depends on <a href="https://www.python.org">Python 3</a> and the availability of the external utility you intend to use. It was thought to be used at the command line (terminal) of a Linux system, but it will probably work seamlessly in any unix like system like xBSD or MacOS, provided Python 3 is installed. It may also be possible to make it work under MS Windows, if the user knows enough system administration to tweak it to do that. Although I have not tested it in any of those systems, some tips to install and use the program under Windows are given in the subsection <a href="#usage-in-ms-windows">Usage in MS Windows</a> of the <a href="#usage">USAGE</a> section.</p>
 <h3 id="changes-history">Changes history:</h3>
 <ul>
-<li>2.4: Check source and destination directories are valid</li>
+<li>2.4: Check source and destination directories are valid. Changed installation scripts. Changed README and MANUAL accordingly.</li>
 <li>2.3: Removed PDF documents. Added HTML manual and possibility to show it.</li>
 <li>2.2.1: Corrected bug that prevented an ‘ok’ to be shown after correctly parsing a composite profile.</li>
 <li>2.2: Added option to edit the configuration file</li>
@@ -41,37 +41,31 @@
 <li><a href="#license">LICENSE</a></li>
 </ul>
 <h2 id="installation">INSTALLATION</h2>
-<p>The instructions below are for installation on a modern Linux system. They may work in other modern Unix-like systems like BSD derivatives, including MacOS, but that has not been tested and may require some tweaking. Try it at your own risk. For MS Windows installation, refer to the subsection <a href="#usage-in-ms-windows">Usage in MS Windows</a> in the <a href="#usage">USAGE</a> section.</p>
+<p>The instructions below are for installation on a modern Linux system. They may work on other modern Unix-like systems like BSD derivatives, including MacOS, but that has not been tested and may require some tweaking. Try it at your own risk. For MS Windows installation, refer to the section <a href="#usage-in-ms-windows">Usage in MS Windows</a>.</p>
 <ol type="1">
-<li><p>Download and unzip the program’s compressed file in a directory of your choosing. To download the most recent version, check <a href="https://ammdias.duckdns.org/downloads">AMMDIAS site</a>.</p></li>
-<li><p>Open a terminal in the directory where the program was uncompressed and run one of the following scripts to install locally or globally:</p>
-<ul>
-<li><p>Local installation:</p>
-<pre><code>$ bash local_install.sh</code></pre>
-<p>This will install the program for the current user only and is suited for single-user systems. The program will be installed on a directory under <code>$HOME/.local/lib</code> and a symbolic link <code>$HOME/.local/bin/mybkp</code> will be created to allow simple execution. The sample configuration file will be copied to <code>$HOME/.config/mybkp_profiles</code>.</p>
-<p>On most Linux systems the <code>$HOME/.local/bin</code> directory will be inserted in the execution PATH, if it exists. If that is not your case, you must make sure to insert it.</p></li>
-<li><p>Global installation:</p>
-<pre><code>$ sudo bash global_install.sh</code></pre>
-<p>This will install the program for all the system’s users and should be the option if it is installed in a multi-user system. The program will be installed under <code>/usr/local/lib</code> and a symlink <code>/usr/local/bin/mybkp</code> will be created. The configuration file must be copied by each user to a suitable location (see section below).</p></li>
-<li><p>Manual installation:</p>
-<p>Copy the uncompressed program directory to a location of your choosing and create a symbolic link to the program (<code>mybkp.py</code>) anywhere in your PATH.</p></li>
-</ul></li>
+<li><p>Download and unzip the program’s compressed file in a directory of your choosing. To download the most recent version, check the <a href="https://github.com/ammdias/mybkp">My Backup GitHub page</a>.</p></li>
+<li><p>Open a terminal in the directory where the program was uncompressed and run the installation script with Python 3:</p>
+<pre><code>$ python3 INSTALL.py</code></pre>
+<p>You will be prompted for the installation directory — i.e. the directory under which the folder containing all the application files will be placed — and for the start link directory — i.e. the directory where the symbolic link for the program will be created.</p>
+<p>The default directories will install the program for the current user only and are suited for single-user systems. If you want to keep these settings, just press ENTER when prompted. The program will be installed in the directory <code>$HOME/.local/lib/MyBkp</code> and the symbolic link <code>$HOME/.local/bin/mybkp</code> will be created. On most Linux systems the <code>$HOME/.local/bin</code> directory will be inserted in the execution PATH, if it exists. If it doesn’t, you will have to add it manually. The sample configuration file will be copied to <code>$HOME/.config/mybkp_profiles</code>.</p>
+<p>If you want to install the program for all the users of the system, you should change the directories accordingly, e.g. <code>/usr/local/lib</code> for the installation directory and <code>/usr/local/bin</code> for the start link. Of course, you will need to run the installation script with administration privileges:</p>
+<pre><code>$ sudo python3 INSTALL.py</code></pre>
+<p>If a previous installation exists on the selected directory, you will be asked if you want to overwrite it. Answer “<code>yes</code>” (or just “<code>y</code>”) if that is the case or “<code>no</code>”/“<code>n</code>” if not.</p></li>
 <li><p>Test that the installation was successful with the command:</p>
 <pre><code>$ mybkp --help</code></pre></li>
 </ol>
 <p>Before using the program, you must configure at least one backup profile. Read the following section for instructions on how to accomplish that.</p>
 <h2 id="configuration">CONFIGURATION</h2>
-<p>This section will focus on the syntax of the configuration file for the program. For actual usage examples, please refer to the last section, <a href="#use-cases">USE CASES</a>. The calling syntax and program options may be found in the next section, <a href="#usage">USAGE</a></p>
+<p>This section will focus on the syntax of the configuration file for the program. For actual usage examples, please refer to the last section, <a href="#use-cases">USE CASES</a>. The calling syntax and program options may be found in the next section, <a href="#usage">USAGE</a>.</p>
 <p>The program will look for the backup profile to execute in a file in one of these locations:</p>
 <ul>
 <li>The path passed to the program with the <code>-c</code>/<code>--config</code> options</li>
 <li><code>$HOME/.mybkp_profiles</code></li>
 <li><code>$HOME/.config/mybkp_profiles</code></li>
 </ul>
-<p>If you installed the program globally or manually, do not forget to create that file with a text editor and save it to one of those locations. To copy the sample configuration file from the global installation to your user profile, use these commands:</p>
-<pre><code>$ mkdir -p ~/.config
-$ cp /usr/local/lib/mybkp-2.2/mybkp_profiles ~/.config/</code></pre>
-<p>If you wish to pass the configuration file location to the program manually at calling time, you may save it wherever you want.</p>
+<p>If you have your <code>$VISUAL</code> or <code>$EDITOR</code> environment variable properly set and used the installation script to install the program, you may edit the default configuration file with the command:</p>
+<pre><code>$ mybkp --edit_config</code></pre>
+<p>If not, just use your favourite text editor to edit or create it.</p>
 <h3 id="configuration-file-syntax">Configuration file syntax</h3>
 <p>The <strong>configuration file</strong> is a simple text file, divided in <em>sections</em> started by a <em>name</em> between square brackets and followed by a number of <em>name</em>/<em>value</em> pairs. Empty lines or lines started with a semi-colon are ignored.</p>
 <p>A <strong>backup profile</strong> is a <em>section</em> that has a name chosen by the user and that must contain four <em>name</em>/<em>value</em> pairs:</p>
@@ -200,7 +194,7 @@ rsync -aPhv /home/antonio/Templates/ /media/antonio/BKP_DISK</code></pre></li>
 <ol type="1">
 <li><p>Start by downloading and installing the most recent version of the <a href="https://www.python.org/downloads/windows/">Python language to your system</a>.</p>
 <p>When prompted, answer yes to the question about adding Python to your system PATH.</p></li>
-<li><p>Download the most recent version of <em>My Backup</em> from <a href="https://ammdias.duckdns.org/downloads">AMMDIAS site</a> and uncompress it in a directory of your choosing.</p></li>
+<li><p>Download the most recent version of <em>My Backup</em> from <a href="https://github.com/ammdias/mybkp">GitHub</a> and uncompress it in a directory of your choosing.</p></li>
 <li><p>Inside that directory, create a configuration file with a text editor. If you create it from scratch, you may use the Windows Notepad. If you wish to start with the sample configuration file you will need another simple text editor like Notepad++ or even the editor from the Python IDE that you just installed (IDLE), because the original file uses Unix line endings that Notepad does not understand.</p>
 <p>Some notes about the configuration file:</p>
 <ul>
@@ -458,7 +452,7 @@ directories: Projects, Work</code></pre>
 <h2 id="license">LICENSE</h2>
 <p>Copyright (C) 2021 António Manuel Dias</p>
 <p>contact: ammdias@gmail.com</p>
-<p>website: <a href="https://ammdias.duckdns.org/downloads">AMMDIAS</a></p>
+<p>website: <a href="https://github.com/ammdias/mybkp">GitHub</a></p>
 <p>This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</p>
 <p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.</p>
 <p>You should have received a copy of the <a href="http://www.gnu.org/licenses">GNU General Public License</a> along with this program. If not, please check the site above.</p>
