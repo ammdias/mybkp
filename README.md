@@ -1,6 +1,6 @@
 MY BACKUP README
 ================
-version 2.4
+version 2.5
 
 Copyright (C) 2021 António Manuel Dias
 
@@ -24,6 +24,8 @@ along with this program.  If not, see http://www.gnu.org/licenses/.
 
 Changes history:
 
+* 2.5: Verify that source and destination directory are different
+       Create destination directory if not exists
 * 2.4: Changed installation scripts.
        Changed README and MANUAL accordingly.
 * 2.3: Corrected bug that prevented manual from being displayed.

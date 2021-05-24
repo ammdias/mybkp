@@ -24,6 +24,8 @@ are given in the subsection [Usage in MS Windows] of the [USAGE] section.
 
 ### Changes history:
 
+* 2.5: Verify that source and destination directory are different
+       Create destination directory if not exists
 * 2.4: Changed installation scripts.
        Changed README and MANUAL accordingly.
 * 2.3: Removed PDF documents.  Added HTML manual and possibility to show it.
@@ -235,15 +237,15 @@ of its default locations, `~/.mybkp_profiles` or `~/.config/mybkp_profiles`.
 If that is not the case, replace `mybkp` with the actual path to the program
 and pass the location of the configuration file with the `-c` option (see
 below).  For example, if the program is located in the directory
-`programs/mybkp-2.2` under the user's home directory, he would call it like
+`programs/MyBkp` under the user's home directory, he would call it like
 this:
 
-    $ ~/programs/mybkp-2.2/mybkp.py [options [option ...]] \
+    $ ~/programs/MyBkp/mybkp.py [options [option ...]] \
                                     [profile [profile ...]]
 
 or, if the program was not executable:
 
-    $ python3 ~/programs/mybkp-2.2/mybkp.py \
+    $ python3 ~/programs/MyBkp/mybkp.py \
               [options [option ...]] [profile [profile ...]]
 
 ### Profiles
@@ -452,7 +454,7 @@ Sample batch file to execute the `documents` profile:
     :: on 'documents' profile
 
     "C:\Program Files\Python\python.exe" ^
-      C:\Users\antonio\Programs\mybkp-2.2\mybkp.py ^
+      C:\Users\antonio\Programs\MyBkp\mybkp.py ^
       --config mybkp_profiles.txt documents 
 
 Save this file in the folder where you uncompressed *My Backup* with a name
@@ -467,7 +469,7 @@ On this batch file I assume that the Python executable is in
 
 (you must check the actual location), that *My Backup* is installed at
 
-    C:\Users\antonio\Programs\mybkp-2.2
+    C:\Users\antonio\Programs\MyBkp
 
 (you must change it to where you uncompressed it) and that the backup
 configuration file is called `mybkp_profiles.txt` (change it to the name

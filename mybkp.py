@@ -20,6 +20,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Changes:
+    2.5: Verify that source and destination directory are different
+         Create destination directory if not exists
     2.4: Changed installation scripts.
          Changed README and MANUAL accordingly.
     2.3: Removed PDF documents. Added HTML manual and option to show it.
@@ -34,14 +36,14 @@ Changes:
          Configuration with possible multiple profiles in separate file.
 """
 
-__version__ = '2.4'
-__date__ = '2021-04-17'
+__version__ = '2.5'
+__date__ = '2021-05-23'
 __license__ ='GNU General Public License version 3'
 __author__ = 'António Manuel Dias <ammdias@gmail.com>'
 
 
 import sys
-import os.path
+import os
 import argparse
 import subprocess
 import webbrowser
@@ -145,11 +147,15 @@ def backup(config, restore=False, dryrun=False, incdirs=False, bkpdir=None):
     for i in directories:
         s,d = (os.path.join(src, i, ''),     # '' ensures source is a directory
                os.path.join(dest, i) if incdirs else dest)
+        if os.path.exists(d) and not os.path.isdir(d):
+            _quit(f'Destination path is not a directory: {d}')
+
         if dryrun:
             print(f'{config["command"]} "{s}" "{d}"')
         else:
             print(f'{action} directory {i} ...')
             try:
+                os.makedirs(d, exist_ok=True)
                 if subprocess.run((*command, s, d)).returncode:
                     _quit("Profile command exited with non-zero status.")
             except Exception as e:

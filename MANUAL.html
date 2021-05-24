@@ -8,6 +8,7 @@
 <p>The program depends on <a href="https://www.python.org">Python 3</a> and the availability of the external utility you intend to use. It was thought to be used at the command line (terminal) of a Linux system, but it will probably work seamlessly in any unix like system like xBSD or MacOS, provided Python 3 is installed. It may also be possible to make it work under MS Windows, if the user knows enough system administration to tweak it to do that. Although I have not tested it in any of those systems, some tips to install and use the program under Windows are given in the subsection <a href="#usage-in-ms-windows">Usage in MS Windows</a> of the <a href="#usage">USAGE</a> section.</p>
 <h3 id="changes-history">Changes history:</h3>
 <ul>
+<li>2.5: Verify that source and destination directory are different Create destination directory if not exists</li>
 <li>2.4: Changed installation scripts. Changed README and MANUAL accordingly.</li>
 <li>2.3: Removed PDF documents. Added HTML manual and possibility to show it.</li>
 <li>2.2.1: Corrected bug that prevented an ‘ok’ to be shown after correctly parsing a composite profile.</li>
@@ -127,11 +128,11 @@ profiles: documents, media</code></pre>
 <p>This program is to be used from the command line, with the following syntax:</p>
 <pre><code>$ mybkp [option [option ...]] [profile [profile ...]]</code></pre>
 <p>This supposes that <code>mybkp</code> is a symbolic link in your execution PATH to the actual <code>mybkp.py</code> program location and that the configuration file is in one of its default locations, <code>~/.mybkp_profiles</code> or <code>~/.config/mybkp_profiles</code>.</p>
-<p>If that is not the case, replace <code>mybkp</code> with the actual path to the program and pass the location of the configuration file with the <code>-c</code> option (see below). For example, if the program is located in the directory <code>programs/mybkp-2.2</code> under the user’s home directory, he would call it like this:</p>
-<pre><code>$ ~/programs/mybkp-2.2/mybkp.py [options [option ...]] \
+<p>If that is not the case, replace <code>mybkp</code> with the actual path to the program and pass the location of the configuration file with the <code>-c</code> option (see below). For example, if the program is located in the directory <code>programs/MyBkp</code> under the user’s home directory, he would call it like this:</p>
+<pre><code>$ ~/programs/MyBkp/mybkp.py [options [option ...]] \
                                 [profile [profile ...]]</code></pre>
 <p>or, if the program was not executable:</p>
-<pre><code>$ python3 ~/programs/mybkp-2.2/mybkp.py \
+<pre><code>$ python3 ~/programs/MyBkp/mybkp.py \
           [options [option ...]] [profile [profile ...]]</code></pre>
 <h3 id="profiles">Profiles</h3>
 <p>The only positional arguments accepted by the program are the names of the backup profiles to be executed. You may pass any number of profiles but their names must match exactly the names on the configuration file. If no profile name is passed, the program will try to execute a profile named <code>default</code>, if it exists.</p>
@@ -230,13 +231,13 @@ profiles: documents, media</code></pre>
 :: on &#39;documents&#39; profile
 
 &quot;C:\Program Files\Python\python.exe&quot; ^
-  C:\Users\antonio\Programs\mybkp-2.2\mybkp.py ^
+  C:\Users\antonio\Programs\MyBkp\mybkp.py ^
   --config mybkp_profiles.txt documents </code></pre>
 <p>Save this file in the folder where you uncompressed <em>My Backup</em> with a name with the extension “.bat”. If you use Notepad to create the file you must surround the name in double-quotes, otherwise the file will be saved with a “.txt” extension. For example, this batch file could be named <code>"backup_documents.bat"</code>.</p>
 <p>On this batch file I assume that the Python executable is in</p>
 <pre><code>C:\Program Files\Python\python.exe</code></pre>
 <p>(you must check the actual location), that <em>My Backup</em> is installed at</p>
-<pre><code>C:\Users\antonio\Programs\mybkp-2.2</code></pre>
+<pre><code>C:\Users\antonio\Programs\MyBkp</code></pre>
 <p>(you must change it to where you uncompressed it) and that the backup configuration file is called <code>mybkp_profiles.txt</code> (change it to the name you used).</p>
 <p>You must now create similar batch file for each of the profiles. The restore batch files are identical, with just the addition of the <code>--restore</code> argument.</p>
 <p>To run the program you just need to open the <em>My Backup</em> program folder and click on the desired batch file. You may even create links on the desktop or on the Start Menu, if you prefer.</p>
