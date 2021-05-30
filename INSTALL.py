@@ -9,8 +9,8 @@ START_SCRIPT = 'mybkp.py'
 LINK_NAME = 'mybkp'
 CONFIG_FILES = ('mybkp_profiles',)  # must be a tuple or list
 
-__version__ = '2.5'
-__date__ = '2021-05-23'
+__version__ = '2.6'
+__date__ = '2021-05-30'
 __author__ = 'António Manuel Dias <ammdias@gmail.com>'
 __license__ = '''
 This program is free software: you can redistribute it and/or modify

@@ -20,6 +20,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Changes:
+    2.6: Removed creation destination directories because it was unsafe.
+         Added confirmation step before starting backup process.
     2.5: Verify that source and destination directory are different
          Create destination directory if not exists
     2.4: Changed installation scripts.
@@ -36,8 +38,8 @@ Changes:
          Configuration with possible multiple profiles in separate file.
 """
 
-__version__ = '2.5'
-__date__ = '2021-05-23'
+__version__ = '2.6'
+__date__ = '2021-05-30'
 __license__ ='GNU General Public License version 3'
 __author__ = 'António Manuel Dias <ammdias@gmail.com>'
 
@@ -144,18 +146,26 @@ def backup(config, restore=False, dryrun=False, incdirs=False, bkpdir=None):
     else:
         action = "Backing up"
 
+    print(f"  Action: {action}")
+    print(f"  From: {src}")
+    print(f"  To: {dest}")
+    print(f"  Including directories in destination path: {'YES' if incdirs else 'NO'}.")
+    input("\nPress ENTER to continue, CTRL+C to stop.\n")
+
     for i in directories:
         s,d = (os.path.join(src, i, ''),     # '' ensures source is a directory
                os.path.join(dest, i) if incdirs else dest)
         if os.path.exists(d) and not os.path.isdir(d):
             _quit(f'Destination path is not a directory: {d}')
 
+        if d.startswith(s):
+            _quit("Error: destination directory inside source directory.")
+
         if dryrun:
             print(f'{config["command"]} "{s}" "{d}"')
         else:
             print(f'{action} directory {i} ...')
             try:
-                os.makedirs(d, exist_ok=True)
                 if subprocess.run((*command, s, d)).returncode:
                     _quit("Profile command exited with non-zero status.")
             except Exception as e:
@@ -289,5 +299,10 @@ def _quit(msg=''):
 
 
 if __name__ == '__main__':
-    _run()
+    try:
+        _run()
+    except KeyboardInterrupt:
+        print("\nProcess terminated by user.", file=sys.stderr)
+    except Exception as e:
+        print(f"\nUnknown error ocurred during process:\n{e}")
 
