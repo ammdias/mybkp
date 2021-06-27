@@ -24,6 +24,7 @@ are given in the subsection [Usage in MS Windows] of the [USAGE] section.
 
 ### Changes history:
 
+* 3.0  Code refactoring.
 * 2.6: Removed creation destination directories because it was unsafe.
        Added confirmation step before starting backup process.
 * 2.5: Verify that source and destination directory are different.
@@ -95,17 +96,9 @@ your own risk.  For MS Windows installation, refer to the section
    exists. If it doesn't, you will have to add it manually.  The sample
    configuration file will be copied to `$HOME/.config/mybkp_profiles`.
 
-   If you want to install the program for all the users of the system, you
-   should change the directories accordingly, e.g. `/usr/local/lib` for the
-   installation directory and `/usr/local/bin` for the start link.  Of
-   course, you will need to run the installation script with administration
-   privileges:
-
-       $ sudo python3 INSTALL.py
-
    If a previous installation exists on the selected directory, you will be
    asked if you want to overwrite it.  Answer "`yes`" (or just "`y`") if that
-   is the case or "`no`"/"`n`" if not.
+   is the case or "`no`" ("`n`") if not.
 
 3. Test that the installation was successful with the command:
 
@@ -144,7 +137,7 @@ by a *name* between square brackets and followed by a number of *name*/*value*
 pairs.  Empty lines or lines started with a semi-colon are ignored.
 
 A **backup profile** is a *section* that has a name chosen by the user and that
-must contain four *name*/*value* pairs:
+must contain five *name*/*value* pairs:
 
 * `command`: the command to perform the backup, including all the command's
   options; this must be a system recognizable command that is called with two
@@ -156,6 +149,8 @@ must contain four *name*/*value* pairs:
   disk drive or network storage device);
 * `directories`: a comma separated list of directories, below the *base*
   directory, to backup.
+* `options`: a comma separated list of profile options. See the section
+  [Available options] for more details.
 
 A **backup profile** may also be composed of a list of previously defined
 profiles, which will be executed in series.  In this case, it must include
@@ -173,12 +168,14 @@ composite profile:
     base: /home/antonio
     backup: /media/antonio/BKP_DISK
     directories: Documents, Templates
+    options:
 
     [media]
     command: cp -auv --strip-trailing-slashes
     base: /home/antonio
     backup: /media/antonio/BKP_DISK
     directories: Music, Pictures, Videos
+    options: 
 
     [all]
     profiles: documents, media
@@ -199,6 +196,7 @@ written this way:
     base: /home/antonio
     backup: /media/antonio/BKP_DISK
     directories: Music, Pictures, Videos
+    options:
 
 This may simplify the writing of complex configuration files and avoid
 typing errors.  An initial section of *variables* is possible using this
@@ -214,15 +212,57 @@ feature.  For the example configuration file above:
     base: ${VAR:home}
     backup: ${VAR:bkp}
     directories: Documents, Templates
+    options:
 
     [media]
     command: ${VAR:cmd}
     base: ${VAR:home}
     backup: ${VAR:bkp}
     directories: Music, Pictures, Videos
+    options:
 
     [all]
     profiles: documents, media
+
+### Available options
+
+The `options` parameter may include any of the options below.  Any unrecognized
+option will just be ignored.
+
+* `include_destination_directories`
+
+  Some programs, like `rsync`, require that the destination directory is
+  included in the command's destination argument.  This option, when included,
+  will instruct My Backup to add each directory to the destination argument
+  of the command.  Example:
+
+      ; Example configuration file
+  
+      [documents]
+      command: rsync -aPhv
+      base: /home/antonio
+      backup: /media/antonio/BKP_DISK
+      directories: Documents, Templates
+      options: include_destination_directories
+
+  Note that the *command* is defined in the `documents` profile as
+  `rsync -aPhv`, the *directories* were defined as `Documents` and
+  `Templates`, the *base* was defined as `/home/antonio` and the *backup* as
+  `/media/antonio/BKP_DISK`.
+  
+  If you execute My Backup with the command:
+  
+      $ mybkp documents
+
+  the commands issued by the program would be:
+
+      rsync -aPhv /home/antonio/Documents/ /media/antonio/BKP_DISK/Documents
+      rsync -aPhv /home/antonio/Templates/ /media/antonio/BKP_DISK/Templates
+
+  Without this option, the commands would be:
+
+      rsync -aPhv /home/antonio/Documents/ /media/antonio/BKP_DISK
+      rsync -aPhv /home/antonio/Templates/ /media/antonio/BKP_DISK
 
 
 USAGE
@@ -315,25 +355,10 @@ This is a list of all the optional arguments accepted by the program:
       $ mybkp -e
 
 * `-i` / `--include_destination_directories`
-
-  By default, the copy command's destination argument is the backup directory.
-  This option will add the profile's directories to the destination argument
-  of the command, as required by some programs (like `rsync`).  Example:
-
-      $ mybkp -i documents
-
-  If the *command* was defined in the `documents` profile as
-  `rsync -aPhv`, the *directories* were defined as `Documents` and
-  `Templates`, the *base* was defined as `/home/antonio` and the *backup* as
-  `/media/antonio/BKP_DISK`, the commands issued by the program would be:
-
-      rsync -aPhv /home/antonio/Documents/ /media/antonio/BKP_DISK/Documents
-      rsync -aPhv /home/antonio/Templates/ /media/antonio/BKP_DISK/Templates
-
-  Without this option, the commands would be:
-
-      rsync -aPhv /home/antonio/Documents/ /media/antonio/BKP_DISK
-      rsync -aPhv /home/antonio/Templates/ /media/antonio/BKP_DISK
+  
+  **WARNING**: **this option has been removed and will not work under version 3 and
+  higher**.  Instead, please use option `include_destination_directories` in the
+  required profiles.  See section [Available options] for more details.
 
 * `-l` / `--list_profiles`
 
@@ -426,12 +451,14 @@ Sample configuration file:
     base: C:\Users\antonio
     backup: E:\
     directories: Documents, Desktop
+    options:
 
     [media]
     command: xcopy /d /e /i /f /h /r /k /b /j
     base: C:\Users\antonio
     backup: E:\
     directories: Music, Pictures, Videos
+    options:
 
     [all]
     profiles: documents, media
@@ -603,6 +630,7 @@ Now we have all the information we need to make the configuration file:
     backup: /media/antonio/BKP_DISK
     directories: Documents, Pictures/Photos, Projects, Work,
                  .config/dotfiles
+    options:
 
 To make or update the backup, all we need to do now is connect the external
 drive to the computer, open it and, in a terminal, call `mybkp`.  First, we
@@ -636,6 +664,7 @@ to change the *program* and *base* values of the configuration file above:
     backup: antonio@backup.home:/home/antonio/laptop-backup
     directories: Documents, Pictures/Photos, Projects, Work,
                  .config/dotfiles
+    options:
 
 `scp` will use your `ssh` configuration and, if you have a remote backup
 server, you probably already know this.  The arguments for the program are as
@@ -695,8 +724,9 @@ would be to replace the *command* value in the configuration profile:
     backup: antonio@backup.home:/home/antonio/laptop-backup
     directories: Documents, Pictures/Photos, Projects, Work,
                  .config/dotfiles
+    options: include_destination_directories
 
-As `rsync` also uses `ssh`, the *backup* value remains the same.  The options
+As `rsync` also uses `ssh`, the *backup* value remains the same.  The arguments
 I used are as follows:
 
 * `-a`: *archive mode*, which means walk into subdirectories, preserve
@@ -709,18 +739,8 @@ I used are as follows:
 
 There is one difference that must be taken into account when using `rsync`:
 this program expects the name of the directories in the destination argument.
-You can force this behaviour passing the `--include_destination_directories`
-or its short version `-i` to *My Backup*:
-
-    $ mybkp -i
-
-This is also necessary when restoring the backup:
-
-    $ mybkp -ir
-    
-or
-
-    $ mybkp --include_destination_directories --restore
+You must then force this behaviour passing `include_destination_directories` as
+an option in the `options` argument of the profile, as seen above.
 
 When using the `--delete` option with `rsync` extra care should be taken when
 doing a backup.  If you accidentally delete a file or directory from the source
@@ -747,6 +767,7 @@ configuration file like this:
     cmd: rsync -aPhv --delete
     home: /antonio/home
     media: Music, Pictures/Photos, Videos
+    opt: include_destination_directories
 
     [backup-disk]
     command: ${VAR:cmd}
@@ -755,20 +776,22 @@ configuration file like this:
     directories: Documents, Templates, Projects, Work,
                  ${VAR:media},
                  .config/dotfiles
+    options: ${VAR:opt}
 
     [media-server]
     command: ${VAR:cmd}
     base: ${VAR:home}
     backup: media@media.home:/home/media
     directories: ${VAR:media}
+    options: ${VAR:opt}
 
 So, to make a full backup the external drive I would call:
 
-    $ mybkp -i backup-disk
+    $ mybkp backup-disk
 
 and to backup just the media files to the media server:
 
-    $ mybkp -i media-server
+    $ mybkp media-server
 
 Things to notice on this configuration file:
 
@@ -777,16 +800,6 @@ Things to notice on this configuration file:
 * The directories value on the `backup-disk` profile are split over three
   lines.  This is possible as long as the configuration parser can distinguish
   each extra line from the name of a value or the start of a section.
-
-Notice also that I always pass the `-i` option to `mybkp`, because I am using
-`rsync` as the tool to copy files.  If you don't want to keep writing that
-option of forget to use it, set an alias for the `mybkp` call in your
-`.bash_aliases` or `.bashrc` configuration file as follows:
-
-    alias mybkp='mybkp -i'
-
-This way, the shell will replace `mybkp` with `mybkp -i` every time you call
-it.
 
 If I feel the need to add another backup, I just have to add the corresponding
 section to the configuration file.  For example, let's say I wish to backup
@@ -801,6 +814,7 @@ is the section I would add to the previous configuration file:
     base: antonio@webserver.home:/home/antonio/
     backup: ${VAR:home}/Projects/webserver/config
     directories: source, bin
+    options: ${VAR:opt}
 
 See that the *base* value is now the remote directory and the *backup* is a
 directory on the local system, and that I used a variable for the first part.
@@ -808,7 +822,7 @@ Variables are just bits of text that will be replaced by their value when
 parsed by the program.  The usage is the same as for the other profiles, even
 though the direction of the backup is different (from remote to local):
 
-    $ mybkp -i web-server
+    $ mybkp web-server
 
 ### Synchronizing multiple main systems
 
@@ -827,6 +841,7 @@ directory.  This is the profile to add to your home configuration file:
     base: ${VAR:home}/Work
     backup: /media/antonio/WORKDEV
     directories: Big Project
+    options: ${VAR:opt}
     
 At work, the profile would be similar, of course, taking into account the
 different user and directory names:
@@ -838,15 +853,16 @@ different user and directory names:
     base: /home/adias/Projects
     backup: /media/adias/WORKDEV
     directories: Big Project
+    options: include_destination_directories
 
 At the end of each day, I would have to upload the changes I made from the work
 PC to the USB device:
 
-    $ mybkp -i bigproject
+    $ mybkp bigproject
 
 and at home, download (*restore*) the changes to my home desktop:
 
-    $ mybkp -ir bigproject
+    $ mybkp -r bigproject
 
 If I do some work at home, I would have to do the same thing (but in the
 opposite direction) before going to work.
@@ -861,16 +877,17 @@ If I had `ssh` access to the work computer, I would only need to use
     base: adias@cooljobs.com:/home/adias/Projects
     backup: ${VAR:home}/Work
     directories: Big Project
+    options: ${VAR:opt}
     
 Getting home after a day at work I would only have to download the changes from
 the work PC and, after working on the project at home, upload them to the
 machine at work:
 
-    $ mybkp -i bigproject
+    $ mybkp bigproject
 
 ... do some work ...
 
-    $ mybkp -ir bigproject
+    $ mybkp -r bigproject
 
 
 ### Snapshot backups and backup rotation
@@ -891,20 +908,21 @@ directory where the bakup will reside.  If I wanted to keep snapshots of the
     base: ${VAR:home}
     backup: /media/antonio/BKP_DISK/snapshots
     directories: Projects, Work
+    options: ${VAR:opt}
 
 Then, for each snapshot I would have to call `mybkp` on that profile and with
 the directory name I wish to use under the `snapshots` directory of the backup
 external drive.  One possibility is to use the date when the backup is made as
 the directory name:
 
-    $ mybkp -i -b 2020-09-03 projects
+    $ mybkp -b 2020-09-03 projects
 
 This would copy the `Projects` and `Work` directories to the
 `snapshots/2020-09-03` directory of the backup disk.  I could simplify the
 calling process by creating an alias that would insert the date automatically,
 using the `date` command with a custom format string:
 
-    alias smybkp='mybkp -i -b `date +%Y-%m-%d`'
+    alias smybkp='mybkp -b `date +%Y-%m-%d`'
 
 Now I would only have to use
 
@@ -918,12 +936,12 @@ I want to have a 7-deep circular backup, one for each day of the week.
 Everyday I do a backup, I will overwrite the backup of the same day of the
 last week.  Take this backup using the `projects` profile on a Monday:
 
-    $ mybkp -i -b Monday projects
+    $ mybkp -b Monday projects
 
 The backup directory would be `snapshots/Monday` on the backup disk.  I could
 also simplify it with an alias:
 
-    alias cmybkp='mybkp -i -b `date +%A`'
+    alias cmybkp='mybkp -b `date +%A`'
 
 This completes the uses cases and I think it covers most things you could do
 with this program.  If you have any question, please contact me by email using

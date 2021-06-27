@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
+
 """Installation script for My Backup.
 """
 
-FILES = ('LICENSE.md', 'LICENSE.html', 'MANUAL.md', 'MANUAL.html',
-         'README.md', 'mybkp.py', 'mybkp_text.py', '__version__')
+FILES = ('LICENSE.md', 'MANUAL.md', 'MANUAL.html', 'README.md',
+         'mybkp.py', 'mybkp_text.py', 'core.py', 'cli.py',
+         '__version__')
 APP_NAME = 'MyBkp' # will be the name of installation directory
 START_SCRIPT = 'mybkp.py'
 LINK_NAME = 'mybkp'
 CONFIG_FILES = ('mybkp_profiles',)  # must be a tuple or list
 
-__version__ = '2.6'
-__date__ = '2021-05-30'
+__version__ = '3.0'
+__date__ = '2021-06-25'
 __author__ = 'António Manuel Dias <ammdias@gmail.com>'
 __license__ = '''
 This program is free software: you can redistribute it and/or modify

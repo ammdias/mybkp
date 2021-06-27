@@ -1,6 +1,6 @@
 MY BACKUP README
 ================
-version 2.6
+version 3.0
 
 Copyright (C) 2021 António Manuel Dias
 
@@ -19,11 +19,12 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see http://www.gnu.org/licenses/.
+along with this program.  If not, see http://www.gnu.org/licenses/ .
 
 
 Changes history:
 
+* 3.0: Code refactoring.
 * 2.6: Removed creation destination directories because it was unsafe.
        Added confirmation step before starting backup process.
 * 2.5: Verify that source and destination directory are different.
@@ -64,32 +65,24 @@ usage, please refer to the user manual in the file "MANUAL.md" or "MANUAL.html".
 1. Open a terminal in the directory where the program was uncompressed and run
    the installation script with Python 3:
 
-         $ python3 INSTALL.py
+       $ python3 INSTALL.py
 
-     You will be prompted for the installation directory --- i.e. the directory
-     under which the folder containing all the application files will be placed
-     --- and for the start link directory --- i.e. the directory where the
-     symbolic link for the program will be created.
+   You will be prompted for the installation directory --- i.e. the directory
+   under which the folder containing all the application files will be placed
+   --- and for the start link directory --- i.e. the directory where the
+   symbolic link for the program will be created.
 
-     The default directories will install the program for the current user only
-     and are suited for single-user systems.  If you want to keep these
-     settings, just press ENTER when prompted.  The program will be installed in
-     the directory `$HOME/.local/lib/MyBkp` and the symbolic link
-     `$HOME/.local/bin/mybkp` will be created.  On most Linux systems the
-     `$HOME/.local/bin` directory will be inserted in the execution PATH, if it
-     exists. If it doesn't, you will have to add it manually.
+   The default directories will install the program for the current user only
+   and are suited for single-user systems.  If you want to keep these
+   settings, just press ENTER when prompted.  The program will be installed in
+   the directory `$HOME/.local/lib/MyBkp` and the symbolic link
+   `$HOME/.local/bin/mybkp` will be created.  On most Linux systems the
+   `$HOME/.local/bin` directory will be inserted in the execution PATH, if it
+   exists. If it doesn't, you will have to add it manually.
 
-     If you want to install the program for all the users of the system, you
-     should change the directories accordingly, e.g. `/usr/local/lib` for the
-     installation directory and `/usr/local/bin` for the start link.  Of
-     course, you will need to run the installation script with administration
-     privileges:
-
-         $ sudo python3 INSTALL.py
-
-     If a previous installation exists on the selected directory, you will be
-     asked if you want to overwrite it.  Answer "`yes`" (or just "`y`") if that
-     is the case or "`no`"/"`n`" if not.
+   If a previous installation exists on the selected directory, you will be
+   asked if you want to overwrite it.  Answer "`yes`" (or just "`y`") if that
+   is the case or "`no`" ("`n`") if not.
 
 2. Test that the installation was successful with the command:
 
@@ -97,8 +90,7 @@ usage, please refer to the user manual in the file "MANUAL.md" or "MANUAL.html".
 
    (you should be presented with the program's help page)
 
-3. Read the MANUAL.  You can open it in a web browser from the program with the
-   command:
+3. Read the MANUAL.  You can open it in a web browser with the command:
 
        $ mybkp --manual
 

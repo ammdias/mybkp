@@ -1,9 +1,19 @@
 ; Sample My Backup configuration file
-; Last updated: 2020-08-26 (AMD)
+; Last updated: 2021-06-17 (AMD)
 
 [default]
-command: echo cp --archive --update --verbose --strip-trailing-slashes
+command: echo rsync -avhP --delete
 base: /home/USER
 backup: /home/USER/tmp
 directories: Documents, Desktop
+options: include_destination_directories
 
+[extra]
+command: echo rsync -avhP --delete
+base: /home/USER
+backup: /home/USER/tmp
+directories: Media, Video
+options: include_destination_directories
+
+[all]
+profiles: default, extra

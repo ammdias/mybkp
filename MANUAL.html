@@ -8,6 +8,7 @@
 <p>The program depends on <a href="https://www.python.org">Python 3</a> and the availability of the external utility you intend to use. It was thought to be used at the command line (terminal) of a Linux system, but it will probably work seamlessly in any unix like system like xBSD or MacOS, provided Python 3 is installed. It may also be possible to make it work under MS Windows, if the user knows enough system administration to tweak it to do that. Although I have not tested it in any of those systems, some tips to install and use the program under Windows are given in the subsection <a href="#usage-in-ms-windows">Usage in MS Windows</a> of the <a href="#usage">USAGE</a> section.</p>
 <h3 id="changes-history">Changes history:</h3>
 <ul>
+<li>3.0 Code refactoring.</li>
 <li>2.6: Removed creation destination directories because it was unsafe. Added confirmation step before starting backup process.</li>
 <li>2.5: Verify that source and destination directory are different. Create destination directory if not exists.</li>
 <li>2.4: Changed installation scripts. Changed README and MANUAL accordingly.</li>
@@ -50,9 +51,7 @@
 <pre><code>$ python3 INSTALL.py</code></pre>
 <p>You will be prompted for the installation directory — i.e. the directory under which the folder containing all the application files will be placed — and for the start link directory — i.e. the directory where the symbolic link for the program will be created.</p>
 <p>The default directories will install the program for the current user only and are suited for single-user systems. If you want to keep these settings, just press ENTER when prompted. The program will be installed in the directory <code>$HOME/.local/lib/MyBkp</code> and the symbolic link <code>$HOME/.local/bin/mybkp</code> will be created. On most Linux systems the <code>$HOME/.local/bin</code> directory will be inserted in the execution PATH, if it exists. If it doesn’t, you will have to add it manually. The sample configuration file will be copied to <code>$HOME/.config/mybkp_profiles</code>.</p>
-<p>If you want to install the program for all the users of the system, you should change the directories accordingly, e.g. <code>/usr/local/lib</code> for the installation directory and <code>/usr/local/bin</code> for the start link. Of course, you will need to run the installation script with administration privileges:</p>
-<pre><code>$ sudo python3 INSTALL.py</code></pre>
-<p>If a previous installation exists on the selected directory, you will be asked if you want to overwrite it. Answer “<code>yes</code>” (or just “<code>y</code>”) if that is the case or “<code>no</code>”/“<code>n</code>” if not.</p></li>
+<p>If a previous installation exists on the selected directory, you will be asked if you want to overwrite it. Answer “<code>yes</code>” (or just “<code>y</code>”) if that is the case or “<code>no</code>” (“<code>n</code>”) if not.</p></li>
 <li><p>Test that the installation was successful with the command:</p>
 <pre><code>$ mybkp --help</code></pre></li>
 </ol>
@@ -70,12 +69,13 @@
 <p>If not, just use your favourite text editor to edit or create it.</p>
 <h3 id="configuration-file-syntax">Configuration file syntax</h3>
 <p>The <strong>configuration file</strong> is a simple text file, divided in <em>sections</em> started by a <em>name</em> between square brackets and followed by a number of <em>name</em>/<em>value</em> pairs. Empty lines or lines started with a semi-colon are ignored.</p>
-<p>A <strong>backup profile</strong> is a <em>section</em> that has a name chosen by the user and that must contain four <em>name</em>/<em>value</em> pairs:</p>
+<p>A <strong>backup profile</strong> is a <em>section</em> that has a name chosen by the user and that must contain five <em>name</em>/<em>value</em> pairs:</p>
 <ul>
 <li><code>command</code>: the command to perform the backup, including all the command’s options; this must be a system recognizable command that is called with two positional arguments in the form <code>command &lt;source&gt; &lt;destination&gt;</code> (like <code>cp</code>, <code>scp</code> or <code>rsync</code>);</li>
 <li><code>base</code>: the parent directory where the directories to backup reside (e.g. your home directory);</li>
 <li><code>backup</code>: the directory where the backup will reside (e.g. an external disk drive or network storage device);</li>
 <li><code>directories</code>: a comma separated list of directories, below the <em>base</em> directory, to backup.</li>
+<li><code>options</code>: a comma separated list of profile options. See the section <a href="#available-options">Available options</a> for more details.</li>
 </ul>
 <p>A <strong>backup profile</strong> may also be composed of a list of previously defined profiles, which will be executed in series. In this case, it must include only one value:</p>
 <ul>
@@ -89,12 +89,14 @@ command: cp -auv --strip-trailing-slashes
 base: /home/antonio
 backup: /media/antonio/BKP_DISK
 directories: Documents, Templates
+options:
 
 [media]
 command: cp -auv --strip-trailing-slashes
 base: /home/antonio
 backup: /media/antonio/BKP_DISK
 directories: Music, Pictures, Videos
+options: 
 
 [all]
 profiles: documents, media</code></pre>
@@ -104,7 +106,8 @@ profiles: documents, media</code></pre>
 command: ${documents:command} 
 base: /home/antonio
 backup: /media/antonio/BKP_DISK
-directories: Music, Pictures, Videos</code></pre>
+directories: Music, Pictures, Videos
+options:</code></pre>
 <p>This may simplify the writing of complex configuration files and avoid typing errors. An initial section of <em>variables</em> is possible using this feature. For the example configuration file above:</p>
 <pre><code>[VAR]
 cmd: cp -auv --strip-trailing-slashes
@@ -116,15 +119,40 @@ command: ${VAR:cmd}
 base: ${VAR:home}
 backup: ${VAR:bkp}
 directories: Documents, Templates
+options:
 
 [media]
 command: ${VAR:cmd}
 base: ${VAR:home}
 backup: ${VAR:bkp}
 directories: Music, Pictures, Videos
+options:
 
 [all]
 profiles: documents, media</code></pre>
+<h3 id="available-options">Available options</h3>
+<p>The <code>options</code> parameter may include any of the options below. Any unrecognized option will just be ignored.</p>
+<ul>
+<li><p><code>include_destination_directories</code></p>
+<p>Some programs, like <code>rsync</code>, require that the destination directory is included in the command’s destination argument. This option, when included, will instruct My Backup to add each directory to the destination argument of the command. Example:</p>
+<pre><code>; Example configuration file
+
+[documents]
+command: rsync -aPhv
+base: /home/antonio
+backup: /media/antonio/BKP_DISK
+directories: Documents, Templates
+options: include_destination_directories</code></pre>
+<p>Note that the <em>command</em> is defined in the <code>documents</code> profile as <code>rsync -aPhv</code>, the <em>directories</em> were defined as <code>Documents</code> and <code>Templates</code>, the <em>base</em> was defined as <code>/home/antonio</code> and the <em>backup</em> as <code>/media/antonio/BKP_DISK</code>.</p>
+<p>If you execute My Backup with the command:</p>
+<pre><code>$ mybkp documents</code></pre>
+<p>the commands issued by the program would be:</p>
+<pre><code>rsync -aPhv /home/antonio/Documents/ /media/antonio/BKP_DISK/Documents
+rsync -aPhv /home/antonio/Templates/ /media/antonio/BKP_DISK/Templates</code></pre>
+<p>Without this option, the commands would be:</p>
+<pre><code>rsync -aPhv /home/antonio/Documents/ /media/antonio/BKP_DISK
+rsync -aPhv /home/antonio/Templates/ /media/antonio/BKP_DISK</code></pre></li>
+</ul>
 <h2 id="usage">USAGE</h2>
 <p>This program is to be used from the command line, with the following syntax:</p>
 <pre><code>$ mybkp [option [option ...]] [profile [profile ...]]</code></pre>
@@ -162,14 +190,7 @@ profiles: documents, media</code></pre>
 <p>Try to edit the configuration file using the system’s default editor. The program will scan the ‘VISUAL’ and ‘EDITOR’ environment variables, by this order, to find the default editor command. If none of these variables is set the program will display an error message and exit.</p>
 <pre><code>$ mybkp -e</code></pre></li>
 <li><p><code>-i</code> / <code>--include_destination_directories</code></p>
-<p>By default, the copy command’s destination argument is the backup directory. This option will add the profile’s directories to the destination argument of the command, as required by some programs (like <code>rsync</code>). Example:</p>
-<pre><code>$ mybkp -i documents</code></pre>
-<p>If the <em>command</em> was defined in the <code>documents</code> profile as <code>rsync -aPhv</code>, the <em>directories</em> were defined as <code>Documents</code> and <code>Templates</code>, the <em>base</em> was defined as <code>/home/antonio</code> and the <em>backup</em> as <code>/media/antonio/BKP_DISK</code>, the commands issued by the program would be:</p>
-<pre><code>rsync -aPhv /home/antonio/Documents/ /media/antonio/BKP_DISK/Documents
-rsync -aPhv /home/antonio/Templates/ /media/antonio/BKP_DISK/Templates</code></pre>
-<p>Without this option, the commands would be:</p>
-<pre><code>rsync -aPhv /home/antonio/Documents/ /media/antonio/BKP_DISK
-rsync -aPhv /home/antonio/Templates/ /media/antonio/BKP_DISK</code></pre></li>
+<p><strong>WARNING</strong>: <strong>this option has been removed and will not work under version 3 and higher</strong>. Instead, please use option <code>include_destination_directories</code> in the required profiles. See section <a href="#available-options">Available options</a> for more details.</p></li>
 <li><p><code>-l</code> / <code>--list_profiles</code></p>
 <p>Display a list of valid backup profiles on the configuration file and exit the program. Example:</p>
 <pre><code>$ mybkp -l</code></pre></li>
@@ -214,12 +235,14 @@ command: xcopy /d /e /i /f /h /r /k /b /j
 base: C:\Users\antonio
 backup: E:\
 directories: Documents, Desktop
+options:
 
 [media]
 command: xcopy /d /e /i /f /h /r /k /b /j
 base: C:\Users\antonio
 backup: E:\
 directories: Music, Pictures, Videos
+options:
 
 [all]
 profiles: documents, media</code></pre>
@@ -294,7 +317,8 @@ command: cp -auv --strip-trailing-slashes
 base: /home/antonio
 backup: /media/antonio/BKP_DISK
 directories: Documents, Pictures/Photos, Projects, Work,
-             .config/dotfiles</code></pre>
+             .config/dotfiles
+options:</code></pre>
 <p>To make or update the backup, all we need to do now is connect the external drive to the computer, open it and, in a terminal, call <code>mybkp</code>. First, we should always test the program in <em>dry-run</em> mode (see <a href="#usage">USAGE</a> above), to test if the commands given are what we want:</p>
 <pre><code>$ mybkp -n</code></pre>
 <p>Then, if all seems ok, do the actual backup:</p>
@@ -311,7 +335,8 @@ command: scp -rpv
 base: /home/antonio
 backup: antonio@backup.home:/home/antonio/laptop-backup
 directories: Documents, Pictures/Photos, Projects, Work,
-             .config/dotfiles</code></pre>
+             .config/dotfiles
+options:</code></pre>
 <p><code>scp</code> will use your <code>ssh</code> configuration and, if you have a remote backup server, you probably already know this. The arguments for the program are as follows:</p>
 <ul>
 <li><code>-r</code>: recursive mode, to copy subdirectories;</li>
@@ -333,8 +358,9 @@ command: rsync -aPhv --delete
 base: /home/antonio
 backup: antonio@backup.home:/home/antonio/laptop-backup
 directories: Documents, Pictures/Photos, Projects, Work,
-             .config/dotfiles</code></pre>
-<p>As <code>rsync</code> also uses <code>ssh</code>, the <em>backup</em> value remains the same. The options I used are as follows:</p>
+             .config/dotfiles
+options: include_destination_directories</code></pre>
+<p>As <code>rsync</code> also uses <code>ssh</code>, the <em>backup</em> value remains the same. The arguments I used are as follows:</p>
 <ul>
 <li><code>-a</code>: <em>archive mode</em>, which means walk into subdirectories, preserve symbolic links, attributes, ownership, etc.;</li>
 <li><code>-P</code>: display copy progress (useful for big copies);</li>
@@ -342,12 +368,7 @@ directories: Documents, Pictures/Photos, Projects, Work,
 <li><code>-v</code>: <em>verbose mode</em>, to explain what the program is doing</li>
 <li><code>--delete</code>: delete files and directories from the destination directory that do not exist in the source directory.</li>
 </ul>
-<p>There is one difference that must be taken into account when using <code>rsync</code>: this program expects the name of the directories in the destination argument. You can force this behaviour passing the <code>--include_destination_directories</code> or its short version <code>-i</code> to <em>My Backup</em>:</p>
-<pre><code>$ mybkp -i</code></pre>
-<p>This is also necessary when restoring the backup:</p>
-<pre><code>$ mybkp -ir</code></pre>
-<p>or</p>
-<pre><code>$ mybkp --include_destination_directories --restore</code></pre>
+<p>There is one difference that must be taken into account when using <code>rsync</code>: this program expects the name of the directories in the destination argument. You must then force this behaviour passing <code>include_destination_directories</code> as an option in the <code>options</code> argument of the profile, as seen above.</p>
 <p>When using the <code>--delete</code> option with <code>rsync</code> extra care should be taken when doing a backup. If you accidentally delete a file or directory from the source and then do a backup, that file or directory will also be deleted from the backup. Before doing a backup, make sure that the original system is correct!</p>
 <h3 id="backups-with-multiple-profiles">Backups with multiple profiles</h3>
 <p>The main reason I rewrote <em>My Backup</em> was that I had different backups in different places. As the previous version kept the configuration on the script itself, I had to have a different script for each backup and that was becoming unmaintainable. Now, with the configuration on a separate file and the possibility of using completely different backup profiles with the same program, that problem is gone.</p>
@@ -358,6 +379,7 @@ directories: Documents, Pictures/Photos, Projects, Work,
 cmd: rsync -aPhv --delete
 home: /antonio/home
 media: Music, Pictures/Photos, Videos
+opt: include_destination_directories
 
 [backup-disk]
 command: ${VAR:cmd}
@@ -366,24 +388,23 @@ backup: /media/antonio/BKP_DISK
 directories: Documents, Templates, Projects, Work,
              ${VAR:media},
              .config/dotfiles
+options: ${VAR:opt}
 
 [media-server]
 command: ${VAR:cmd}
 base: ${VAR:home}
 backup: media@media.home:/home/media
-directories: ${VAR:media}</code></pre>
+directories: ${VAR:media}
+options: ${VAR:opt}</code></pre>
 <p>So, to make a full backup the external drive I would call:</p>
-<pre><code>$ mybkp -i backup-disk</code></pre>
+<pre><code>$ mybkp backup-disk</code></pre>
 <p>and to backup just the media files to the media server:</p>
-<pre><code>$ mybkp -i media-server</code></pre>
+<pre><code>$ mybkp media-server</code></pre>
 <p>Things to notice on this configuration file:</p>
 <ul>
 <li>I used variables for the <em>command</em> and <em>base</em> values and also for the media directories: see the <strong>CONFIGURATION</strong> section to know how to use them.</li>
 <li>The directories value on the <code>backup-disk</code> profile are split over three lines. This is possible as long as the configuration parser can distinguish each extra line from the name of a value or the start of a section.</li>
 </ul>
-<p>Notice also that I always pass the <code>-i</code> option to <code>mybkp</code>, because I am using <code>rsync</code> as the tool to copy files. If you don’t want to keep writing that option of forget to use it, set an alias for the <code>mybkp</code> call in your <code>.bash_aliases</code> or <code>.bashrc</code> configuration file as follows:</p>
-<pre><code>alias mybkp=&#39;mybkp -i&#39;</code></pre>
-<p>This way, the shell will replace <code>mybkp</code> with <code>mybkp -i</code> every time you call it.</p>
 <p>If I feel the need to add another backup, I just have to add the corresponding section to the configuration file. For example, let’s say I wish to backup the configuration files and scripts from my web server, that live on the directories <code>source</code> and <code>bin</code> of my user on that system, to my laptop. This is the section I would add to the previous configuration file:</p>
 <pre><code>; Example 4.1
 
@@ -391,9 +412,10 @@ directories: ${VAR:media}</code></pre>
 command: ${VAR:cmd}
 base: antonio@webserver.home:/home/antonio/
 backup: ${VAR:home}/Projects/webserver/config
-directories: source, bin</code></pre>
+directories: source, bin
+options: ${VAR:opt}</code></pre>
 <p>See that the <em>base</em> value is now the remote directory and the <em>backup</em> is a directory on the local system, and that I used a variable for the first part. Variables are just bits of text that will be replaced by their value when parsed by the program. The usage is the same as for the other profiles, even though the direction of the backup is different (from remote to local):</p>
-<pre><code>$ mybkp -i web-server</code></pre>
+<pre><code>$ mybkp web-server</code></pre>
 <h3 id="synchronizing-multiple-main-systems">Synchronizing multiple main systems</h3>
 <p>If you work on the same project or files in two different machines, say your home desktop and the one at work, you may wish to keep those files in sync. This may be accomplished with <em>My Backup</em>, if it is installed on both machines.</p>
 <p>Let’s say the transport from one machine to the other is done with a USB stick (with label <code>WORKDEV</code>) and the files you need are all on the <code>Work/Big Project</code> directory. This is the profile to add to your home configuration file:</p>
@@ -403,7 +425,8 @@ directories: source, bin</code></pre>
 command: ${VAR:cmd}
 base: ${VAR:home}/Work
 backup: /media/antonio/WORKDEV
-directories: Big Project</code></pre>
+directories: Big Project
+options: ${VAR:opt}</code></pre>
 <p>At work, the profile would be similar, of course, taking into account the different user and directory names:</p>
 <pre><code>; Example 5
 
@@ -411,11 +434,12 @@ directories: Big Project</code></pre>
 command: rsync -aPhv --delete
 base: /home/adias/Projects
 backup: /media/adias/WORKDEV
-directories: Big Project</code></pre>
+directories: Big Project
+options: include_destination_directories</code></pre>
 <p>At the end of each day, I would have to upload the changes I made from the work PC to the USB device:</p>
-<pre><code>$ mybkp -i bigproject</code></pre>
+<pre><code>$ mybkp bigproject</code></pre>
 <p>and at home, download (<em>restore</em>) the changes to my home desktop:</p>
-<pre><code>$ mybkp -ir bigproject</code></pre>
+<pre><code>$ mybkp -r bigproject</code></pre>
 <p>If I do some work at home, I would have to do the same thing (but in the opposite direction) before going to work.</p>
 <p>If I had <code>ssh</code> access to the work computer, I would only need to use <em>My Backup</em> at home:</p>
 <pre><code>; Example 4.3
@@ -424,11 +448,12 @@ directories: Big Project</code></pre>
 command: ${VAR:cmd}
 base: adias@cooljobs.com:/home/adias/Projects
 backup: ${VAR:home}/Work
-directories: Big Project</code></pre>
+directories: Big Project
+options: ${VAR:opt}</code></pre>
 <p>Getting home after a day at work I would only have to download the changes from the work PC and, after working on the project at home, upload them to the machine at work:</p>
-<pre><code>$ mybkp -i bigproject</code></pre>
+<pre><code>$ mybkp bigproject</code></pre>
 <p>… do some work …</p>
-<pre><code>$ mybkp -ir bigproject</code></pre>
+<pre><code>$ mybkp -r bigproject</code></pre>
 <h3 id="snapshot-backups-and-backup-rotation">Snapshot backups and backup rotation</h3>
 <p>The last use case in this manual is for those who like to have <em>snapshot</em> kind of backups, i.e. backups that reflect the state at different points in time. This may be useful to revert changes made before the last backup.</p>
 <p>The most basic way of doing this with <em>My Backup</em> is as explained in the <a href="#usage">USAGE</a> section, using the <code>--backup_directory</code> option to indicate the directory where the bakup will reside. If I wanted to keep snapshots of the <code>Work</code> and <code>Projects</code> directories I would start to make an appropriate profile:</p>
@@ -438,18 +463,19 @@ directories: Big Project</code></pre>
 command: ${VAR:cmd}
 base: ${VAR:home}
 backup: /media/antonio/BKP_DISK/snapshots
-directories: Projects, Work</code></pre>
+directories: Projects, Work
+options: ${VAR:opt}</code></pre>
 <p>Then, for each snapshot I would have to call <code>mybkp</code> on that profile and with the directory name I wish to use under the <code>snapshots</code> directory of the backup external drive. One possibility is to use the date when the backup is made as the directory name:</p>
-<pre><code>$ mybkp -i -b 2020-09-03 projects</code></pre>
+<pre><code>$ mybkp -b 2020-09-03 projects</code></pre>
 <p>This would copy the <code>Projects</code> and <code>Work</code> directories to the <code>snapshots/2020-09-03</code> directory of the backup disk. I could simplify the calling process by creating an alias that would insert the date automatically, using the <code>date</code> command with a custom format string:</p>
-<pre><code>alias smybkp=&#39;mybkp -i -b `date +%Y-%m-%d`&#39;</code></pre>
+<pre><code>alias smybkp=&#39;mybkp -b `date +%Y-%m-%d`&#39;</code></pre>
 <p>Now I would only have to use</p>
 <pre><code>$ smybkp projects</code></pre>
 <p>to achieve the same result.</p>
 <p>With this program option it is also possible to create a <em>circular</em> bakup, i.e. a series of backups where the last overwrites the most ancient one. Let’s say I want to have a 7-deep circular backup, one for each day of the week. Everyday I do a backup, I will overwrite the backup of the same day of the last week. Take this backup using the <code>projects</code> profile on a Monday:</p>
-<pre><code>$ mybkp -i -b Monday projects</code></pre>
+<pre><code>$ mybkp -b Monday projects</code></pre>
 <p>The backup directory would be <code>snapshots/Monday</code> on the backup disk. I could also simplify it with an alias:</p>
-<pre><code>alias cmybkp=&#39;mybkp -i -b `date +%A`&#39;</code></pre>
+<pre><code>alias cmybkp=&#39;mybkp -b `date +%A`&#39;</code></pre>
 <p>This completes the uses cases and I think it covers most things you could do with this program. If you have any question, please contact me by email using the address at the top of this manual.</p>
 <h2 id="license">LICENSE</h2>
 <p>Copyright (C) 2021 António Manuel Dias</p>

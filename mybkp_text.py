@@ -1,5 +1,3 @@
-#-*- coding: utf-8 -*-
-
 """My Backup (text constants)
 
 Backup a group of directories from a base location using an external program
@@ -19,9 +17,30 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-NAME = 'My Backup'
+__version__ = '3.0'
+__date__ = '2021-06-25'
+__license__ ='GNU General Public License version 3'
+__author__ = 'António Manuel Dias <ammdias@gmail.com>'
 
-SHORT_COPYRIGHT = '''My Backup
+
+ARG_PROFILES = 'name of the backup profile(s) to execute.'
+ARG_CONFIG = 'path to the profiles configuration file.'
+ARG_BACKUP_DIRECTORY = 'add this directory to the base backup directory.'
+ARG_EDIT_CONFIG = "edit the configuration file using the system's default editor and exit."
+ARG_IDD_DEPRECATED = 'This option has been deprecated and should not be used.'
+ARG_LIST_PROFILES = 'list valid backup profiles in configuration file and exit.'
+ARG_NO_ACT = 'show what files to backup, without actually performing the action.'
+ARG_PRINT_CONFIG = 'show configuration file and exit.'
+ARG_RESTORE = 'restore directories from backup.'
+ARG_COPYRIGHT = 'show copyright information and exit.'
+ARG_WARRANTY = 'show warranty information and exit.'
+ARG_MANUAL = 'display the manual in a web browser window and exit.'
+ARG_VERSION = 'show version information and exit.'
+
+NAME = "My Backup"
+DESCR = "Backup a group of directories."
+
+SHORT_COPYRIGHT = """My Backup
 (C) 2021 António Manuel Dias
 <https://ammdias.duckdns.org/downloads>
 
@@ -36,9 +55,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.'''
+along with this program.  If not, see <https://www.gnu.org/licenses/>."""
 
-COPYRIGHT = '''From the Preamble of the GNU General Public License:
+COPYRIGHT = """From the Preamble of the GNU General Public License:
         
 The GNU General Public License is a free, copyleft license for
 software and other kinds of works.
@@ -72,9 +91,9 @@ know their rights.
 
 See the file 'gpl.txt' on the program's directory for more details.
 If it's missing please refer to http://www.gnu.org/licenses/gpl.txt
-'''
+"""
 
-WARRANTY = '''From the GNU General Public License:
+WARRANTY = """From the GNU General Public License:
     
 15. Disclaimer of Warranty.
 
@@ -99,9 +118,53 @@ NOT LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES
 SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO
 OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY
 HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
-'''
+"""
 
-MANUAL = '''The program's manual should open in a new web browser window.
+MANUAL = """The program's manual should open in a new web browser window.
 If not, please read the manual in text format (actually *Markdown*) in
 the program's installation directory.
-'''
+"""
+
+WARNING_IDD = """
+WARNING: the -i / --include_destination_directories option is
+no longer valid.  Instead, it has been substituted by the
+"include_destination_directories" option in the "options" argument of each
+profile.  Please, read the "Configuration file syntax > Available options"
+section of the Manual for more information.
+"""
+
+CONFIG_AT = "Configuration file at: {}\n"
+
+PROFILE_SETUP = """\nProcessing profile: {}
+    From: {}
+    To: {}
+    Directories: {}
+    Options: {}
+"""
+PROCEED = "Proceed with this operation (y/n)? "
+YES = ('y', 'yes')
+NO = ('n', 'no')
+
+PROCESS_DIR = "Processing directory {} ..."
+
+CONFIG_NOT_FOUND = """Configuration file not found.
+Please provide the correct path to this file as an option
+to the program or use the default locations to place it.
+See the program's manual for more information on this subject.
+"""
+
+EXIT_EXCEPTION = "\nProcess terminated by user."
+UNK_EXCEPTION = "\nUnknown error ocurred:\n{}"
+
+EDITOR_NOT_FOUND = "No default editor is configured on your system."
+EDITOR_FAILED = "Editor returned with non-zero status."
+EDITOR_EXCEPTION = "Exception ocurred while editing the configuration file:\n-->{}"
+EDITOR_EXCEPTION_UNK = "Unknown exception ocurred while editing the configuration file."
+
+PROFILE_NOT_FOUND = "Profile not found: {}"
+PARSING_EXCEPTION = "Exception occurred while reading the configuration file:\n--> {}"
+CONFIG_EXCEPTION = "Exception ocurred when processing profile configuration:\n--> {}"
+
+NESTED_DIR_EXCEPTION = "Error: destination directory inside source directory."
+CMD_ERROR = "Profile command exited with non-zero status."
+

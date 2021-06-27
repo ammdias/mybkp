@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-#-*- coding: utf-8 -*-
 
 """My Backup
 
@@ -20,6 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Changes:
+    3.0: Code refactoring
     2.6: Removed creation destination directories because it was unsafe.
          Added confirmation step before starting backup process.
     2.5: Verify that source and destination directory are different
@@ -38,271 +38,59 @@ Changes:
          Configuration with possible multiple profiles in separate file.
 """
 
-__version__ = '2.6'
-__date__ = '2021-05-30'
+__version__ = '3.0'
+__date__ = '2021-06-25'
 __license__ ='GNU General Public License version 3'
 __author__ = 'António Manuel Dias <ammdias@gmail.com>'
 
 
 import sys
-import os
 import argparse
-import subprocess
-import webbrowser
-from configparser import ConfigParser, ExtendedInterpolation
+from cli import cli_run, prt_exit
 from mybkp_text import *
 
 
-DEFAULT_CONFIG_FILES = (
-    os.path.expanduser(os.path.join('~', '.mybkp_profiles')),
-    os.path.expanduser(os.path.join('~', '.config', 'mybkp_profiles'))
-)
+def parse_arguments():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description=f'{NAME} {__version__}: {DESCR}')
 
+    parser.add_argument('profiles', type=str, nargs='*', help=ARG_PROFILES)
 
-def _run():
-    '''Main function.'''
-    args = parse_cli_arguments()
+    parser.add_argument('-c', '--config', type=str, default='', help=ARG_CONFIG)
 
-    if args.list_profiles:
-        list_profiles(args.config)
-    elif args.print_config:
-        print_config(args.config)
-    elif args.edit_config:
-        edit_config(args.config)
-    elif args.copyright:
-        print(NAME, __version__, '\n')
-        print(SHORT_COPYRIGHT, '\n')
-        _quit(COPYRIGHT)
-    elif args.warranty:
-        print(NAME, __version__, '\n')
-        print(SHORT_COPYRIGHT, '\n')
-        _quit(WARRANTY)
-    elif args.manual:
-        webbrowser.open_new(os.path.join(sys.path[0], 'MANUAL.html'))
-        _quit(MANUAL)
-    elif args.version:
-        _quit(f"{NAME} {__version__}")
-    else:
-        profiles = args.profile or ("default",)
-        config = get_config(profiles=profiles, config_option=args.config)
-        if not config:
-            _quit("Nothing to do: no valid profile found.")
-        for i in config:
-            print(f"\nProcessing profile: {i}")
-            backup(config[i], restore=args.restore, dryrun=args.no_act,
-                   incdirs=args.include_destination_directories,
-                   bkpdir=args.backup_directory)
+    parser.add_argument('-b', '--backup-directory', help=ARG_BACKUP_DIRECTORY)
 
+    parser.add_argument('-e', '--edit-config', action='store_true', help=ARG_EDIT_CONFIG)
 
-def list_profiles(config_option=None):
-    '''List valid configuration profiles.'''
-    profiles = valid_profiles(config_option)
-    for p in profiles:
-        if type(profiles[p]) == list:
-            print(f"{p}: {', '.join(profiles[p])}")
-        else:
-            print(p)
+    parser.add_argument('-i', '--include_destination_directories', action='store_true',
+                        help=ARG_IDD_DEPRECATED)
 
+    parser.add_argument('-l', '--list-profiles', action='store_true', help=ARG_LIST_PROFILES)
 
-def print_config(config_option=None):
-    '''Print configuration file.'''
-    print(open(config_file(config_option), 'r').read())
+    parser.add_argument('-n', '--no-act', action='store_true', help=ARG_NO_ACT)
 
+    parser.add_argument('-p', '--print-config', action='store_true', help=ARG_PRINT_CONFIG)
 
-def edit_config(config_option=None):
-    '''Edit the configuration file with default editor.'''
-    if 'VISUAL' in os.environ:
-        editor = os.environ['VISUAL']
-    elif 'EDITOR' in os.environ:
-        editor = os.environ['EDITOR']
-    else:
-        _quit("No default editor is configured on your system.")
+    parser.add_argument('-r', '--restore', action='store_true', help=ARG_RESTORE)
 
-    try:
-        if subprocess.run((editor, config_file(config_option))).returncode:
-            _quit("Editor returned with non-zero status.")
-    except Exception as e:
-        _quit(f"Exception ocurred while editing the configuration file:\n-->{e}")
-    except:
-        _quit("Unknown exception ocurred while editing the configuration file.")
-    print()
+    parser.add_argument('--copyright', action='store_true', help=ARG_COPYRIGHT)
 
+    parser.add_argument('--warranty', action='store_true', help=ARG_WARRANTY)
 
-def backup(config, restore=False, dryrun=False, incdirs=False, bkpdir=None):
-    '''Perform the backup/restore process.'''
-    try:
-        command = config['command'].split()
-        src, dest = config['base'], config['backup']
-        directories = map(str.strip, config['directories'].split(','))
-    except Exception as e:
-        _quit(f"Exception occurred while parsing profile values:\n--> {e}")
+    parser.add_argument('--manual', action='store_true', help=ARG_MANUAL)
 
-    if bkpdir:
-        dest = os.path.join(dest, bkpdir)
-
-    if restore:
-        action = "Restoring"
-        src, dest = dest, src
-    else:
-        action = "Backing up"
-
-    print(f"  Action: {action}")
-    print(f"  From: {src}")
-    print(f"  To: {dest}")
-    print(f"  Including directories in destination path: {'YES' if incdirs else 'NO'}.")
-    input("\nPress ENTER to continue, CTRL+C to stop.\n")
-
-    for i in directories:
-        s,d = (os.path.join(src, i, ''),     # '' ensures source is a directory
-               os.path.join(dest, i) if incdirs else dest)
-        if os.path.exists(d) and not os.path.isdir(d):
-            _quit(f'Destination path is not a directory: {d}')
-
-        if d.startswith(s):
-            _quit("Error: destination directory inside source directory.")
-
-        if dryrun:
-            print(f'{config["command"]} "{s}" "{d}"')
-        else:
-            print(f'{action} directory {i} ...')
-            try:
-                if subprocess.run((*command, s, d)).returncode:
-                    _quit("Profile command exited with non-zero status.")
-            except Exception as e:
-                _quit(f'Exception occured while running the backup command:\n--> {e}')
-            except:
-                _quit('Unknown exception occurred while running the backup command.')
-            print()
-
-
-def parse_cli_arguments():
-    '''Parse command line arguments.'''
-    parser = argparse.ArgumentParser(description=f"{NAME} {__version__}: "
-                                                  "Backup a group of directories.")
-
-    parser.add_argument("profile", type=str, nargs='*',
-                        help="name of the backup profile to use.")
-
-    parser.add_argument("-c", "--config", type=str, default='',
-                        help="path to the profiles configuration file.")
-
-    parser.add_argument("-b", "--backup_directory",
-                        help="add this directory to the base backup directory.")
-
-    parser.add_argument("-e", "--edit_config", action="store_true",
-                        help="edit the configuration file using the system's"
-                             " default editor and exit.")
-
-    parser.add_argument("-i", "--include_destination_directories",
-                        action="store_true",
-                        help="add directory names to the destination argument "
-                             "of the command (as required by the rsync program).")
-
-    parser.add_argument("-l", "--list_profiles", action="store_true",
-                        help="list valid backup profiles in configuration file and exit.")
-
-    parser.add_argument("-n", "--no_act", action="store_true",
-                        help="show what files to backup, "
-                             "without actually performing the action.")
-
-    parser.add_argument("-p", "--print_config", action="store_true",
-                        help="show configuration file and exit.")
-
-    parser.add_argument("-r", "--restore", action="store_true",
-                        help="restore directories from backup.")
-
-    parser.add_argument("--copyright", action="store_true",
-                        help='show copyright information and exit.')
-
-    parser.add_argument("--warranty", action="store_true",
-                        help= 'show warranty information and exit.')
-
-    parser.add_argument("--manual", action="store_true",
-                        help= 'display the manual in a web browser window and exit.')
-
-    parser.add_argument("--version", action="store_true",
-                        help='show version information and exit.')
+    parser.add_argument('--version', action='store_true', help=ARG_VERSION)
 
     return parser.parse_args()
 
-
-def get_config(profiles, config_option=None):
-    '''Parse configuration file.'''
-    vp = valid_profiles(config_option)
-    config = {}
-    for profile in profiles:
-        print(f"Parsing profile: {profile}...", end=' ')
-        if profile not in vp:
-            print("invalid profile.")
-            continue
-
-        if type(vp[profile]) == list:
-            profiles += vp[profile]
-        else:
-            config[profile] = vp[profile]
-        print("ok.")
-
-    return config
-
-
-def valid_profiles(config_option):
-    '''Parse configuration file and return valid profiles dictionary.'''
-    try:
-        config_parser = ConfigParser(interpolation=ExtendedInterpolation())
-        config_parser.read(config_file(config_option))
-    except Exception as e:
-        _quit(f"Exception occurred while reading the configuration file:\n--> {e}")
-
-    profiles = {}
-    comp_profiles = []
-    options = set(('command', 'base', 'backup', 'directories'))
-    for p in config_parser.sections():
-        profile_opts = set(config_parser[p])
-        if profile_opts == options:
-            profiles[p] = config_parser[p]
-        elif 'profiles' in profile_opts:
-            comp_profiles.append(p)
-
-    for p in comp_profiles:
-        if len(config_parser[p]) == 1:
-            c = []
-            for pp in map(str.strip, config_parser[p]['profiles'].split(',')):
-                if pp in profiles:
-                    c.append(pp)
-            if c:
-                profiles[p] = c
-
-    return profiles
-
-
-def config_file(config_option):
-    """Return configuration file name."""
-    for i in (config_option,) if config_option else DEFAULT_CONFIG_FILES:
-        if os.path.exists(i):
-            return i
-
-    _quit("Configuration file not found.\n"
-          "Please provide the correct path to this file as an option\n"
-          "to the program or use the default locations to place it.\n"
-          "See the program's manual for more information on this subject.")
-
-
-def _error(msg):
-    """Print error message."""
-    print(msg, file=sys.stderr)
-
-
-def _quit(msg=''): 
-    '''Print message and exit.'''
-    _error(msg)
-    sys.exit(1)
-
+#------------------------------------------------------------------------------
+# Program entry point
 
 if __name__ == '__main__':
     try:
-        _run()
+        args = parse_arguments()
+        cli_run(args)
     except KeyboardInterrupt:
-        print("\nProcess terminated by user.", file=sys.stderr)
+        prt_exit(EXIT_EXCEPTION, 1)
     except Exception as e:
-        print(f"\nUnknown error ocurred during process:\n{e}")
-
+        prt_exit(UNK_EXCEPTION.format(e), 1)
