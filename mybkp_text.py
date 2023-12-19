@@ -1,7 +1,7 @@
 """My Backup (text constants)
 
 Backup a group of directories from a base location using an external program
-(C) 2015-2021 António Manuel Dias
+(C) 2015 António Manuel Dias
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-__version__ = '3.0'
-__date__ = '2021-06-25'
+__version__ = '3.1'
+__date__ = '2023-12-14'
 __license__ ='GNU General Public License version 3'
 __author__ = 'António Manuel Dias <ammdias@gmail.com>'
 
@@ -36,12 +36,13 @@ ARG_COPYRIGHT = 'show copyright information and exit.'
 ARG_WARRANTY = 'show warranty information and exit.'
 ARG_MANUAL = 'display the manual in a web browser window and exit.'
 ARG_VERSION = 'show version information and exit.'
+ARG_UNINSTALL = 'uninstall application.'
 
 NAME = "My Backup"
 DESCR = "Backup a group of directories."
 
 SHORT_COPYRIGHT = """My Backup
-(C) 2021 António Manuel Dias
+(C) 2015 António Manuel Dias
 <https://ammdias.duckdns.org/downloads>
 
 This program is free software: you can redistribute it and/or modify

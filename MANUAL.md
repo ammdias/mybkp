@@ -22,27 +22,6 @@ system administration to tweak it to do that.  Although I have not tested it
 in any of those systems, some tips to install and use the program under Windows
 are given in the subsection [Usage in MS Windows] of the [USAGE] section. 
 
-### Changes history:
-
-* 3.0  Code refactoring.
-* 2.6: Removed creation destination directories because it was unsafe.
-       Added confirmation step before starting backup process.
-* 2.5: Verify that source and destination directory are different.
-       Create destination directory if not exists.
-* 2.4: Changed installation scripts.
-       Changed README and MANUAL accordingly.
-* 2.3: Removed PDF documents.  Added HTML manual and possibility to show it.
-* 2.2.1: Corrected bug that prevented an 'ok' to be shown after correctly
-           parsing a composite profile.
-* 2.2: Added option to edit the configuration file.
-* 2.1: Added option to list backup profiles.
-       Added option to display configuration file.
-       Composite profiles can now only be composed of simple profiles,
-         thus preventing 'infinite loop' profiles.
-* 2.0: Complete rewrite in Python.
-       Configuration with possible multiple profiles in a separate file.
-* 1.0: Original bash script.
-
 
 CONTENTS
 --------
@@ -104,8 +83,17 @@ your own risk.  For MS Windows installation, refer to the section
 
        $ mybkp --help
 
+4. You may uninstall the program with the command:
+
+       $ mybkp --uninstall
+    
+   or run the uninstall script in the program's install directory:
+
+       $ python3 UNINSTALL.py
+
 Before using the program, you must configure at least one backup profile.  Read
 the following section for instructions on how to accomplish that.
+
 
 CONFIGURATION
 -------------
@@ -119,6 +107,8 @@ The program will look for the backup profile to execute in a file in one of
 these locations:
 
 * The path passed to the program with the `-c`/`--config` options
+* The configuration file (`mybkp_profiles`) inside the configuration directory
+  given during program installation
 * `$HOME/.mybkp_profiles`
 * `$HOME/.config/mybkp_profiles`
 
@@ -274,7 +264,7 @@ This program is to be used from the command line, with the following syntax:
 
 This supposes that `mybkp` is a symbolic link in your execution PATH to the
 actual `mybkp.py` program location and that the configuration file is in one
-of its default locations, `~/.mybkp_profiles` or `~/.config/mybkp_profiles`.
+of its default locations.
 
 If that is not the case, replace `mybkp` with the actual path to the program
 and pass the location of the configuration file with the `-c` option (see
@@ -317,13 +307,6 @@ file.
 ### Options
 
 This is a list of all the optional arguments accepted by the program:
-
-* `-h` / `--help`, `--copyright`, `--warranty`, `--version`
-
-  Display the program's online help page, copyright, warranty or version
-  information and exit the program.  Example:
-
-      $ mybkp --help
 
 * `-b` / `--backup_directory` *name*
 
@@ -404,6 +387,19 @@ This is a list of all the optional arguments accepted by the program:
 * `--warranty`
 
   Shows the program's warranty information.
+
+* `-h` / `--help`
+
+  Display the program's online help page.  Example:
+
+      $ mybkp --help
+
+* `--uninstall`
+
+  Uninstall the program, removing the directory where it was installed and
+  the symbolic link to the program.  Example:
+  
+      $ mybkp --uninstall
 
 
 ### Usage in MS Windows

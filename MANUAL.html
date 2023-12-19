@@ -6,19 +6,6 @@
 </ol>
 <p>It is possible to have different profiles in the user configuration file, with different backup strategies and targets. For an overview of several possible use cases, check the section <a href="#use-cases">USE CASES</a> at the end of this manual.</p>
 <p>The program depends on <a href="https://www.python.org">Python 3</a> and the availability of the external utility you intend to use. It was thought to be used at the command line (terminal) of a Linux system, but it will probably work seamlessly in any unix like system like xBSD or MacOS, provided Python 3 is installed. It may also be possible to make it work under MS Windows, if the user knows enough system administration to tweak it to do that. Although I have not tested it in any of those systems, some tips to install and use the program under Windows are given in the subsection <a href="#usage-in-ms-windows">Usage in MS Windows</a> of the <a href="#usage">USAGE</a> section.</p>
-<h3 id="changes-history">Changes history:</h3>
-<ul>
-<li>3.0 Code refactoring.</li>
-<li>2.6: Removed creation destination directories because it was unsafe. Added confirmation step before starting backup process.</li>
-<li>2.5: Verify that source and destination directory are different. Create destination directory if not exists.</li>
-<li>2.4: Changed installation scripts. Changed README and MANUAL accordingly.</li>
-<li>2.3: Removed PDF documents. Added HTML manual and possibility to show it.</li>
-<li>2.2.1: Corrected bug that prevented an ‘ok’ to be shown after correctly parsing a composite profile.</li>
-<li>2.2: Added option to edit the configuration file.</li>
-<li>2.1: Added option to list backup profiles. Added option to display configuration file. Composite profiles can now only be composed of simple profiles, thus preventing ‘infinite loop’ profiles.</li>
-<li>2.0: Complete rewrite in Python. Configuration with possible multiple profiles in a separate file.</li>
-<li>1.0: Original bash script.</li>
-</ul>
 <h2 id="contents">CONTENTS</h2>
 <ul>
 <li><a href="#installation">INSTALLATION</a></li>
@@ -54,6 +41,10 @@
 <p>If a previous installation exists on the selected directory, you will be asked if you want to overwrite it. Answer “<code>yes</code>” (or just “<code>y</code>”) if that is the case or “<code>no</code>” (“<code>n</code>”) if not.</p></li>
 <li><p>Test that the installation was successful with the command:</p>
 <pre><code>$ mybkp --help</code></pre></li>
+<li><p>You may uninstall the program with the command:</p>
+<pre><code>$ mybkp --uninstall</code></pre>
+<p>or run the uninstall script in the program’s install directory:</p>
+<pre><code>$ python3 UNINSTALL.py</code></pre></li>
 </ol>
 <p>Before using the program, you must configure at least one backup profile. Read the following section for instructions on how to accomplish that.</p>
 <h2 id="configuration">CONFIGURATION</h2>
@@ -61,6 +52,7 @@
 <p>The program will look for the backup profile to execute in a file in one of these locations:</p>
 <ul>
 <li>The path passed to the program with the <code>-c</code>/<code>--config</code> options</li>
+<li>The configuration file (<code>mybkp_profiles</code>) inside the configuration directory given during program installation</li>
 <li><code>$HOME/.mybkp_profiles</code></li>
 <li><code>$HOME/.config/mybkp_profiles</code></li>
 </ul>
@@ -156,7 +148,7 @@ rsync -aPhv /home/antonio/Templates/ /media/antonio/BKP_DISK</code></pre></li>
 <h2 id="usage">USAGE</h2>
 <p>This program is to be used from the command line, with the following syntax:</p>
 <pre><code>$ mybkp [option [option ...]] [profile [profile ...]]</code></pre>
-<p>This supposes that <code>mybkp</code> is a symbolic link in your execution PATH to the actual <code>mybkp.py</code> program location and that the configuration file is in one of its default locations, <code>~/.mybkp_profiles</code> or <code>~/.config/mybkp_profiles</code>.</p>
+<p>This supposes that <code>mybkp</code> is a symbolic link in your execution PATH to the actual <code>mybkp.py</code> program location and that the configuration file is in one of its default locations.</p>
 <p>If that is not the case, replace <code>mybkp</code> with the actual path to the program and pass the location of the configuration file with the <code>-c</code> option (see below). For example, if the program is located in the directory <code>programs/MyBkp</code> under the user’s home directory, he would call it like this:</p>
 <pre><code>$ ~/programs/MyBkp/mybkp.py [options [option ...]] \
                                 [profile [profile ...]]</code></pre>
@@ -175,9 +167,6 @@ rsync -aPhv /home/antonio/Templates/ /media/antonio/BKP_DISK</code></pre></li>
 <h3 id="options">Options</h3>
 <p>This is a list of all the optional arguments accepted by the program:</p>
 <ul>
-<li><p><code>-h</code> / <code>--help</code>, <code>--copyright</code>, <code>--warranty</code>, <code>--version</code></p>
-<p>Display the program’s online help page, copyright, warranty or version information and exit the program. Example:</p>
-<pre><code>$ mybkp --help</code></pre></li>
 <li><p><code>-b</code> / <code>--backup_directory</code> <em>name</em></p>
 <p>Add <code>name</code> to the end of the profile’s backup directory path. Must be followed by the name to add. Examples:</p>
 <pre><code>$ mybkp -b 2020-August documents</code></pre>
@@ -211,6 +200,12 @@ rsync -aPhv /home/antonio/Templates/ /media/antonio/BKP_DISK</code></pre></li>
 <p>Shows the program’s name and version.</p></li>
 <li><p><code>--warranty</code></p>
 <p>Shows the program’s warranty information.</p></li>
+<li><p><code>-h</code> / <code>--help</code></p>
+<p>Display the program’s online help page. Example:</p>
+<pre><code>$ mybkp --help</code></pre></li>
+<li><p><code>--uninstall</code></p>
+<p>Uninstall the program, removing the directory where it was installed and the symbolic link to the program. Example:</p>
+<pre><code>$ mybkp --uninstall</code></pre></li>
 </ul>
 <h3 id="usage-in-ms-windows">Usage in MS Windows</h3>
 <p>As mentioned previously, <em>My Backup</em> was meant to be used in Linux systems but, as Python is ported to every major operating system, it may be possible, with some tweaking, to run it on other systems. In this subsection I will be giving some tips to what could be done to make it work in MS Windows. Notice that <strong>THIS HAS NOT BEEN TESTED</strong> so, proceed at your own risk :)</p>

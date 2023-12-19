@@ -3,7 +3,7 @@
 """My Backup
 
 Backup a group of directories from a base location using an external program
-(C) 2015-2021 António Manuel Dias
+(C) 2015 António Manuel Dias
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,29 +17,10 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-Changes:
-    3.0: Code refactoring
-    2.6: Removed creation destination directories because it was unsafe.
-         Added confirmation step before starting backup process.
-    2.5: Verify that source and destination directory are different
-         Create destination directory if not exists
-    2.4: Changed installation scripts.
-         Changed README and MANUAL accordingly.
-    2.3: Removed PDF documents. Added HTML manual and option to show it.
-  2.2.1: Corrected bug that prevented an 'ok' to be shown after correctly
-           parsing a composite profile.
-    2.2: Added option to edit the configuration file.
-    2.1: Added option to list backup profiles.
-         Added option to display configuration file.
-         Composite profiles can now only be composed of simple profiles,
-           thus preventing 'infinite loop' profiles.
-    2.0: Complete rewrite in Python.
-         Configuration with possible multiple profiles in separate file.
 """
 
-__version__ = '3.0'
-__date__ = '2021-06-25'
+__version__ = '3.1'
+__date__ = '2023-12-14'
 __license__ ='GNU General Public License version 3'
 __author__ = 'António Manuel Dias <ammdias@gmail.com>'
 
@@ -80,6 +61,8 @@ def parse_arguments():
     parser.add_argument('--manual', action='store_true', help=ARG_MANUAL)
 
     parser.add_argument('--version', action='store_true', help=ARG_VERSION)
+
+    parser.add_argument('--uninstall', action='store_true', help=ARG_UNINSTALL)
 
     return parser.parse_args()
 

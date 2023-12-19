@@ -1,8 +1,8 @@
 MY BACKUP README
 ================
-version 3.0
+version 3.1
 
-Copyright (C) 2021 António Manuel Dias
+Copyright (C) 2015 António Manuel Dias
 
 contact: ammdias@gmail.com
 
@@ -22,37 +22,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see http://www.gnu.org/licenses/ .
 
 
-Changes history:
-
-* 3.0: Code refactoring.
-* 2.6: Removed creation destination directories because it was unsafe.
-       Added confirmation step before starting backup process.
-* 2.5: Verify that source and destination directory are different.
-       Create destination directory if not exists.
-* 2.4: Changed installation scripts.
-       Changed README and MANUAL accordingly.
-* 2.3: Corrected bug that prevented manual from being displayed.
-* 2.2.1: Corrected bug that prevented an 'ok' to be shown after correctly
-             parsing a composite profile.
-* 2.2: Added option to edit the configuration file.
-* 2.1: Added option to list backup profiles.
-       Added option to display configuration file.
-       Composite profiles can now only be composed of simple profiles,
-           thus preventing 'infinite loop' profiles.
-* 2.0: Complete rewrite in Python.
-       Configuration with possible multiple profiles in a separate file.
-* 1.0: Original bash script.
-
-
 ABOUT THE PROGRAM
 =================
 
 This program makes easy the backup of a group of directories to another
 location or remote directory, with the help of an external utility like
 `rsync` or `cp`.  It depends on Python 3.
-
-The following instructions are for Linux systems.  If you intend to use the
-program on another system, please refer to the included MANUAL.
 
 
 INSTALLATION AND BASIC USAGE
@@ -93,5 +68,3 @@ usage, please refer to the user manual in the file "MANUAL.md" or "MANUAL.html".
 3. Read the MANUAL.  You can open it in a web browser with the command:
 
        $ mybkp --manual
-
-

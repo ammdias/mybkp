@@ -1,7 +1,7 @@
 """My Backup - Command Line Interface
 
 Backup a group of directories from a base location using an external program
-(C) 2015-2021 António Manuel Dias
+(C) 2015 António Manuel Dias
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -15,13 +15,10 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-Changes:
-    3.0: Initial version
 """
 
-__version__ = '3.0'
-__date__ = '2021-06-25'
+__version__ = '3.1'
+__date__ = '2023-12-14'
 __license__ ='GNU General Public License version 3'
 __author__ = 'António Manuel Dias <ammdias@gmail.com>'
 
@@ -44,6 +41,10 @@ def cli_run(args):
 
     if args.warranty:
         prt_exit(f'{NAME} {__version__}\n\n{SHORT_COPYRIGHT}\n\n{WARRANTY}')
+
+    if args.uninstall:
+        from UNINSTALL import uninstall
+        uninstall()
 
     if args.manual:
         webbrowser.open_new(os.path.join(sys.path[0], 'MANUAL.html'))

@@ -1,7 +1,7 @@
-"""My Backup - Nuclear classes and function for My Backup program
+"""My Backup - Nuclear classes and functions for My Backup program
 
 Backup a group of directories from a base location using an external program
-(C) 2015-2021 António Manuel Dias
+(C) 2015 António Manuel Dias
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -15,17 +15,15 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-Changes:
-    3.0: Initial version
 """
 
-__version__ = '3.0'
-__date__ = '2021-06-25'
+__version__ = '3.1'
+__date__ = '2023-12-14'
 __license__ ='GNU General Public License version 3'
 __author__ = 'António Manuel Dias <ammdias@gmail.com>'
 
 
+import sys
 import os.path
 import subprocess
 from configparser import ConfigParser, ExtendedInterpolation
@@ -40,8 +38,21 @@ DEFAULT_CONFIG_FILES = (
 
 def find_config_file(config_file):
     """Return configuration file path."""
-    for i in (config_file,) if config_file else DEFAULT_CONFIG_FILES:
-        if os.path.exists(i):
+    config_files = DEFAULT_CONFIG_FILES
+    # read install log to check original config file path
+    try:
+        for i in open(os.path.join(sys.path[0], 'install.log')).readlines():
+            ptype, sep, path = i.strip().partition(':')
+            if '' in (ptype, sep, path):
+                break                     # invalid log, ignore
+            if ptype == 'config_file':
+                config_files = (path, *config_files)
+                break
+    except:
+        pass                              # error reading log, ignore
+
+    for i in (config_file,) if config_file else config_files:
+        if os.path.lexists(i):
             return i
 
     return None
